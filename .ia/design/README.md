@@ -16,7 +16,7 @@ https://claude.ai/artifact/NQ6M6BcQuCqcjo6Qtc6kak
 | A1 · Alumno · Inicio | Pendientes, equipo y clases |
 | A2 · Alumno · Tarea y entrega | Consigna y entrega |
 
-Logo: `assets/logo.svg`.
+Logo: `assets/logo.png` (temporal; la versión vectorial se agregará como `assets/logo.svg`).
 
 Si el lienzo y estos documentos se contradicen, **mandan estos documentos** (tokens y reglas). El lienzo es la referencia visual de la composición.
 
