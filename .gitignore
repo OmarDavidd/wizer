@@ -1,0 +1,51 @@
+# Local working docs (not versioned)
+odd/
+PREGUNTAS.md
+
+# Legacy project (reference only)
+wizer-backend/
+wizer-frontend/
+PROYECTO_EDUCONNECT.md
+Wizer_Documentacion.md
+wizer-trello-import.csv
+logo.jpeg
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+coverage/
+*.coverage
+coverage.cobertura.xml
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# Tooling
+.codegraph/
+.atl/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.log
+
+# Team planning (managed in Trello)
+docs/02-planificacion.md
+docs/trello-mvp.csv
