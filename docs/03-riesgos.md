@@ -14,4 +14,3 @@ Escala: probabilidad e impacto **Alto / Medio / Bajo**. Revisión en cada planif
 | R-08 | **Configuración de Google OAuth** (pantalla de consentimiento, orígenes permitidos) bloquea el login con Google | Baja | Bajo | Configurarlo temprano con el origen local; es candidato a recorte si se complica |
 | R-09 | **Pruebas E2E inestables** con tiempo real (timing) | Media | Medio | Esperas por eventos y `data-testid`, nunca `sleep`; reintento solo en CI (1 vez) |
 | R-10 | **Disponibilidad del equipo** en diciembre (exámenes, fiestas) | Media | Medio | El margen del 21 al 31 no tiene trabajo planificado; avisar las ausencias en la planificación |
-| R-11 | **Agentes de IA** introducen patrones fuera de la arquitectura (MediatR, librerías nuevas) | Media | Medio | `AGENTS.md` y `.ia/`; revisión humana obligatoria en cada PR |

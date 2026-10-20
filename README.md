@@ -70,7 +70,6 @@ El detalle completo está en [`.ia/architecture.md`](.ia/architecture.md).
 
 ```text
 wizer/
-├── AGENTS.md          punto de entrada para agentes de IA
 ├── .ia/               arquitectura, reglas y sistema de diseño
 ├── docs/              requisitos y riesgos
 ├── assets/            logo
@@ -89,10 +88,6 @@ wizer/
 | [`.ia/realtime.md`](.ia/realtime.md) | Chat, presencia y pizarra en tiempo real |
 | [`.ia/design/README.md`](.ia/design/README.md) | Sistema de diseño |
 
-### Desarrollo asistido por IA
-
-El proyecto está pensado para trabajar con agentes de IA (Claude Code, Codex, OpenCode). [`AGENTS.md`](AGENTS.md) y la carpeta [`.ia/`](.ia/) definen la arquitectura, las convenciones, la estrategia de pruebas y qué decisiones requieren aprobación humana. Así cualquier agente trabaja con las mismas reglas que el equipo.
-
 ## Cómo levantarlo
 
 > 🚧 En construcción. Cuando esté el esqueleto del proyecto, bastará con:
@@ -110,4 +105,4 @@ Proyecto desarrollado por **Omar** (líder técnico), **Luis** y **Rolando**, to
 
 - Ramas `feat/*` y `fix/*` con PR hacia `develop`, y releases de `develop` a `main`.
 - Commits con [Conventional Commits](https://www.conventionalcommits.org/).
-- Antes de escribir código, leer [`AGENTS.md`](AGENTS.md) y [`.ia/workflow.md`](.ia/workflow.md).
+- Antes de escribir código, leer [`.ia/workflow.md`](.ia/workflow.md).
