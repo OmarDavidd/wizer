@@ -1,3 +1,5 @@
+# One grouped PR per ecosystem per week. Major upgrades of core toolchain pieces are
+# decided by hand (not mid-MVP), so Dependabot ignores them.
 version: 2
 updates:
   - package-ecosystem: nuget
@@ -6,8 +8,8 @@ updates:
       interval: weekly
     target-branch: develop
     groups:
-      microsoft:
-        patterns: ["Microsoft.*", "System.*"]
+      nuget:
+        patterns: ["*"]
 
   - package-ecosystem: npm
     directory: /apps/frontend
@@ -15,19 +17,32 @@ updates:
       interval: weekly
     target-branch: develop
     groups:
-      tanstack:
-        patterns: ["@tanstack/*"]
-      testing:
-        patterns: ["vitest", "@vitest/*", "@testing-library/*", "msw", "jsdom"]
+      npm:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # Types must track the Node runtime we use (Node 24).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker
     directory: /infra/minio
     schedule:
       interval: weekly
     target-branch: develop
+    groups:
+      docker:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "golang"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     target-branch: develop
+    groups:
+      actions:
+        patterns: ["*"]
