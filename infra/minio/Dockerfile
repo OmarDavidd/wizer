@@ -10,7 +10,7 @@ ARG MC_COMMIT=7394ce0dd2a80935aded936b09fa12cbb3cb8096
 ARG MC_RELEASE=RELEASE.2025-08-13T08-35-41Z
 ARG MC_VERSION=2025-08-13T08:35:41Z
 
-FROM golang:1.24-alpine@sha256:8bee1901f1e530bfb4a7850aa7a479d17ae3a18beb6e09064ed54cfd245b7191 AS build
+FROM golang:1.25-alpine@sha256:1ae0735f00daffa3aaf1363a5184c0d2dc55c78e3db4ec70241cdac97bf84b59 AS build
 ARG MINIO_COMMIT
 ARG MINIO_RELEASE
 ARG MINIO_VERSION
@@ -42,7 +42,7 @@ RUN git init -q . \
       -X github.com/minio/mc/cmd.CommitID=${MC_COMMIT} \
       -X github.com/minio/mc/cmd.ShortCommitID=${MC_COMMIT:0:12}" .
 
-FROM alpine:3.22@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8
+FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
 RUN apk add --no-cache ca-certificates \
  && addgroup -S minio && adduser -S -G minio minio \
  && mkdir -p /data && chown minio:minio /data
