@@ -1,0 +1,33 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /apps/backend
+    schedule:
+      interval: weekly
+    target-branch: develop
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+
+  - package-ecosystem: npm
+    directory: /apps/frontend
+    schedule:
+      interval: weekly
+    target-branch: develop
+    groups:
+      tanstack:
+        patterns: ["@tanstack/*"]
+      testing:
+        patterns: ["vitest", "@vitest/*", "@testing-library/*", "msw", "jsdom"]
+
+  - package-ecosystem: docker
+    directory: /infra/minio
+    schedule:
+      interval: weekly
+    target-branch: develop
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: develop

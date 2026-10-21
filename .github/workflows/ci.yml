@@ -1,0 +1,88 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore Wizer.slnx --locked-mode
+      - run: dotnet format Wizer.slnx --verify-no-changes --no-restore
+      - run: dotnet build Wizer.slnx --no-restore -c Release
+      - name: Unit tests
+        run: dotnet test tests/Wizer.UnitTests --no-build -c Release --collect:"XPlat Code Coverage"
+      - name: Integration tests (Testcontainers)
+        run: dotnet test tests/Wizer.IntegrationTests --no-build -c Release
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm run coverage
+      - run: npm run build
+
+  api-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+      - name: Regenerate OpenAPI document
+        run: dotnet build apps/backend/src/Wizer.Api
+      - name: Regenerate frontend client
+        run: npm ci && npm run api:generate
+        working-directory: apps/frontend
+      - name: Fail if the contract or the client changed without being committed
+        run: |
+          # --porcelain also lists new (untracked) generated files, not only modified ones.
+          if [ -n "$(git status --porcelain -- apps/backend/openapi apps/frontend/src/api/generated)" ]; then
+            git status --porcelain -- apps/backend/openapi apps/frontend/src/api/generated
+            echo "::error::OpenAPI or generated client is out of date. Run 'make api-client' and commit the result."
+            exit 1
+          fi
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: trufflesecurity/trufflehog@v3.99.3
+        with:
+          extra_args: --results=verified,unknown

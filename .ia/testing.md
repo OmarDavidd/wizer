@@ -109,6 +109,18 @@ Flujos críticos del MVP:
 
 ## Ejecución
 
+Desde la raíz, con el `Makefile`:
+
+```bash
+make test          # todo
+make test-back     # backend: unitarias + integración (requiere Docker)
+make test-front    # frontend
+make lint          # dotnet format, oxlint, prettier, typecheck
+make check         # lo mismo que la CI
+```
+
+Equivalentes directos:
+
 ```bash
 # Backend (desde apps/backend)
 dotnet test tests/Wizer.UnitTests
@@ -116,11 +128,13 @@ dotnet test tests/Wizer.IntegrationTests       # requiere Docker
 dotnet format Wizer.slnx --verify-no-changes
 
 # Frontend (desde apps/frontend)
-npm test
+npm test                                       # vitest run
+npm run coverage
 npm run typecheck
-npm run lint
-npm run e2e                                    # requiere el stack de CI levantado
+npm run lint                                   # oxlint
+npm run format:check                           # prettier
 ```
+
 
 ## Antes de terminar una tarea
 

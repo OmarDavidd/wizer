@@ -1,0 +1,81 @@
+# Development infrastructure. The API and the frontend run on the host with hot reload
+# (`make api` / `make web`); Vite proxies /api, /hubs and /storage to keep a single origin.
+name: wizer-dev
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wizer}
+      POSTGRES_USER: ${POSTGRES_USER:-wizer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wizer_dev}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Official MinIO images are no longer published: we build our own from the official source
+  # at pinned commits (infra/minio/Dockerfile). The image also bundles `mc`, used by minio-init.
+  minio:
+    build: ./infra/minio
+    image: wizer/minio:2025-09-07
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-wizer}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-wizer_dev_secret}
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio-init:
+    build: ./infra/minio
+    image: wizer/minio:2025-09-07
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD} &&
+             mc mb --ignore-existing local/$${MINIO_BUCKET} &&
+             mc anonymous set none local/$${MINIO_BUCKET}"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-wizer}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-wizer_dev_secret}
+      MINIO_BUCKET: ${MINIO_BUCKET:-wizer}
+    restart: "no"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+
+  # Heavy (~1.5 GB RAM, slow first start while it downloads signatures): opt-in with `--profile av`.
+  clamav:
+    image: clamav/clamav:stable
+    profiles: ["av"]
+    ports:
+      - "127.0.0.1:${CLAMAV_PORT:-3310}:3310"
+    volumes:
+      - clamav_db:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10m
+
+volumes:
+  pg_data:
+  minio_data:
+  clamav_db:

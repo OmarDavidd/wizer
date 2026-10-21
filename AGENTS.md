@@ -54,6 +54,8 @@ Después, los documentos de la tarea:
 
 El detalle y lo que está prohibido introducir están en `.ia/README.md`.
 
+**Comandos:** `make help` en la raíz lista todo (levantar la infraestructura, la API, el frontend, las pruebas, el lint y la regeneración del cliente de la API). El detalle está en `.ia/infrastructure.md` §Comandos.
+
 ---
 
 ## 4. Reglas de idioma

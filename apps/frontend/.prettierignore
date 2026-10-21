@@ -1,0 +1,5 @@
+dist
+coverage
+src/api/generated
+src/routeTree.gen.ts
+package-lock.json

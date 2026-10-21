@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/inter';
+
+/* Design tokens — source of truth: .ia/design/tokens.md */
+@theme {
+  --font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+
+  /* Brand */
+  --color-brand: #5b216b;
+  --color-brand-hover: #4a1a57;
+  --color-brand-soft: #f1ecfe;
+  --color-brand-subtle: #ddd6fe;
+  --color-on-brand-muted: #ede9fe;
+  --color-violet: #6d28d9;
+
+  /* Accent */
+  --color-accent: #ffc857;
+  --color-accent-soft: #fff6de;
+  --color-accent-softer: #fff1cf;
+  --color-accent-ink: #8a5a00;
+
+  /* Neutrals */
+  --color-ground: #f6f5f1;
+  --color-surface: #ffffff;
+  --color-surface-muted: #fbfaf7;
+  --color-chip: #f0eee7;
+  --color-track: #eae8e1;
+  --color-bubble: #f3f1eb;
+  --color-border: #e6e3da;
+  --color-border-strong: #d9d6cc;
+  --color-border-dashed: #cfcbbf;
+  --color-ink: #16181d;
+  --color-text-2: #3f434d;
+  --color-muted: #5b5f6b;
+  --color-subtle: #6b6f7a;
+
+  /* States */
+  --color-success-bg: #dcfce7;
+  --color-success: #14532d;
+  --color-success-dot: #16a34a;
+  --color-danger-bg: #fee2e2;
+  --color-danger: #7f1d1d;
+  --color-danger-strong: #991b1b;
+  --color-info-bg: #dbeafe;
+  --color-info: #1e3a8a;
+
+  /* Radius */
+  --radius-xs: 7px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-float: 0 8px 20px rgb(22 24 29 / 0.08);
+  --shadow-sticky: 0 6px 14px rgb(22 24 29 / 0.12);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background-color: var(--color-ground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  a {
+    color: var(--color-brand);
+  }
+
+  a:hover {
+    color: var(--color-brand-hover);
+  }
+}
