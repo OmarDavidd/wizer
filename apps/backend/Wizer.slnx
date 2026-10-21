@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Wizer.Api/Wizer.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Wizer.IntegrationTests/Wizer.IntegrationTests.csproj" />
+    <Project Path="tests/Wizer.UnitTests/Wizer.UnitTests.csproj" />
+  </Folder>
+</Solution>

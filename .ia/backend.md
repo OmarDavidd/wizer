@@ -48,6 +48,20 @@ apps/backend/src/Wizer.Api/
 
 No crear carpetas globales de negocio (`Controllers/`, `Services/`, `Repositories/`, `Entities/`) en la raíz.
 
+## Configuración de los proyectos
+
+- `apps/backend/Directory.Build.props` define para todos los proyectos: `net10.0`, `Nullable`, `ImplicitUsings`, warnings como errores en `Release` y **lock files** (`packages.lock.json`, versionados). La CI restaura con `--locked-mode`: si se agrega un paquete, el lock file actualizado va en el mismo commit.
+- **OpenAPI en build**: `Microsoft.Extensions.ApiDescription.Server` escribe `apps/backend/openapi/wizer-api.json` en cada build. Ese archivo se versiona y es la entrada de Orval. Por eso nada en el arranque puede exigir infraestructura al registrar servicios (la connection string se lee de forma diferida).
+- **Solo JSON** (a implementar con el primer endpoint): en `AddControllers` se quita el `StringOutputFormatter` y el media type `text/json` de los formatters JSON, así el contrato no declara `text/plain` ni `text/json`. **No** se usa un filtro global `[Produces]`: pisaría el `application/problem+json` de las respuestas de error del framework (cubrirlo con una prueba de integración). `application/*+json` se mantiene porque es lo que permite escribir `problem+json`.
+- La API escucha en `http://localhost:5080` en desarrollo (`launchSettings.json`).
+- **Ninguna connection string ni contraseña se versiona** (ni siquiera las de desarrollo: el repo es público y los escáneres de secretos las marcan). `make api` arma `ConnectionStrings__Wizer` con las variables de `.env` (o los valores por defecto del Compose). Para correr la API desde el IDE, guardarla una vez con user-secrets:
+  ```bash
+  dotnet user-secrets --project apps/backend/src/Wizer.Api init
+  dotnet user-secrets --project apps/backend/src/Wizer.Api set ConnectionStrings:Wizer "<connection string>"
+  ```
+  La connection string es la misma que imprime `make -n api` (host `localhost`, y base, usuario, contraseña y puerto de tu `.env`).
+- Documentación interactiva con Scalar en `/api/docs` (solo en desarrollo; se agrega con el primer endpoint). Hoy el documento OpenAPI se sirve en `/openapi/v1.json`.
+
 ## Estructura de un módulo
 
 Cada módulo usa solo las carpetas que necesita:

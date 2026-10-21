@@ -61,9 +61,9 @@ Si una decisión no está documentada y afecta de forma importante al proyecto, 
 - Grafana Alloy → Loki → Grafana
 - Correlation ID por petición
 
-### Diferencias con `plataforma_mezcal`
+### Decisiones de stack
 
-| Tema | Mezcal | Wizer | Motivo |
+| Tema | Alternativa descartada | Wizer | Motivo |
 |------|--------|-------|--------|
 | Frontend | Next.js | Vite SPA + TanStack Router | Todo está detrás del login y es muy de tiempo real; no hace falta SSR |
 | Cliente HTTP | Servicios a mano | Orval genera tipos, schemas Zod y hooks | Front y back nunca se desincronizan |

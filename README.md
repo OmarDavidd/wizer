@@ -73,7 +73,11 @@ wizer/
 ├── .ia/               arquitectura, reglas y sistema de diseño
 ├── docs/              requisitos y riesgos
 ├── assets/            logo
-└── apps/              (próximamente) backend y frontend
+├── apps/
+│   ├── backend/       API .NET + pruebas
+│   └── frontend/      SPA React
+├── Makefile           comandos de desarrollo
+└── docker-compose.dev.yml
 ```
 
 ## Documentación
@@ -90,12 +94,24 @@ wizer/
 
 ## Cómo levantarlo
 
-> 🚧 En construcción. Cuando esté el esqueleto del proyecto, bastará con:
->
-> ```bash
-> cp .env.example .env
-> docker compose -f docker-compose.dev.yml up
-> ```
+**Requisitos:** .NET 10 SDK, Node 24, Docker con Compose y `make`.
+
+```bash
+make setup        # primera vez: dependencias de back y front
+make infra-up     # PostgreSQL, MinIO y Mailpit en Docker
+make api          # terminal 1 → API en http://localhost:5080
+make web          # terminal 2 → app en http://localhost:5173
+```
+
+| Comando | Qué hace |
+|---------|----------|
+| `make help` | Lista todos los comandos |
+| `make test` | Pruebas de backend (unitarias e integración) y frontend |
+| `make check` | Lint, formato, tipos y pruebas: lo mismo que la CI |
+| `make api-client` | Regenera el cliente TypeScript después de cambiar la API |
+| `make infra-down` | Apaga la infraestructura |
+
+Mailpit (correos de desarrollo) queda en http://localhost:8025.
 
 ## Equipo
 

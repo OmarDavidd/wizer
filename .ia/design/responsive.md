@@ -2,7 +2,7 @@
 
 ## Breakpoints
 
-Los de Tailwind CSS v4 por defecto, igual que mezcal:
+Los de Tailwind CSS v4 por defecto:
 
 ```text
 sm  = 640px

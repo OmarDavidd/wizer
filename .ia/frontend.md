@@ -8,8 +8,8 @@ Reglas obligatorias para desarrollar el frontend: una SPA con React y Vite que c
 
 | Librería | Uso |
 |----------|-----|
-| React 19 + Vite | SPA |
-| TypeScript (`strict: true`) | Tipado |
+| React 19 + Vite 8 | SPA |
+| TypeScript 6 (`strict`, `noUncheckedIndexedAccess`) | Tipado |
 | TanStack Router | Rutas tipadas, loaders y guards |
 | TanStack Query | Estado del servidor y caché |
 | Zustand | Estado global del cliente (no sensible) |
@@ -22,8 +22,10 @@ Reglas obligatorias para desarrollar el frontend: una SPA con React y Vite que c
 | `@excalidraw/excalidraw` | Pizarra |
 | `react-pdf` | Vista previa de PDF |
 | lucide-react | Íconos |
-| Vitest + React Testing Library + MSW | Pruebas |
-| Playwright | Pruebas E2E |
+| Vitest + React Testing Library + MSW 3 | Pruebas (MSW 3: `server.listen({ onUnhandledFrame: 'error' })`) |
+| Playwright | Pruebas E2E (S4) |
+| oxlint + Prettier | Lint y formato |
+| `@fontsource-variable/*` | Fuentes autoalojadas (Bricolage Grotesque, Inter) |
 
 No agregar librerías sin autorización (`workflow.md` §12).
 
@@ -37,24 +39,28 @@ No agregar librerías sin autorización (`workflow.md` §12).
 
 ```text
 apps/frontend/src/
+├── main.tsx                   monta <Providers /> e importa theme.css
+├── routeTree.gen.ts           generado por el plugin del router (versionado, no editar)
 ├── app/
-│   ├── main.tsx
-│   ├── providers.tsx          QueryClient, Router, Toaster
-│   └── layouts/               AppShell, ClassLayout, AuthLayout
-├── routes/                    árbol de TanStack Router (file-based)
+│   ├── providers.tsx          QueryClient (reintentos según errors.md) + Router
+│   ├── theme.css              Tailwind v4 + tokens de design/tokens.md en @theme
+│   └── layouts/               AppShell, ClassLayout, AuthLayout (design/layouts.md)
+├── routes/                    rutas por archivo (__root.tsx, index.tsx y las de cada feature)
 ├── features/<feature>/
 ├── components/
-│   ├── ui/                    shadcn/ui: Button, Input, Dialog…
-│   └── common/                genéricos compuestos: Avatar, EmptyState, PageHeader, FileIcon
+│   ├── ui/                    primitivas de shadcn ajustadas a los tokens
+│   └── common/                genéricos compuestos: Avatar, EmptyState…
 ├── api/
-│   ├── generated/             Orval (NO EDITAR)
-│   ├── client.ts              Axios
-│   └── errors.ts              normalización de ProblemDetails
+│   ├── generated/             Orval (NO EDITAR): endpoints/, model/, zod/
+│   ├── client.ts              Axios (withCredentials) + mutator `customInstance`
+│   └── errors.ts              normalización de ProblemDetails (errors.md)
 ├── realtime/                  conexiones de SignalR
 ├── stores/                    Zustand globales (session, ui)
-├── lib/                       utilidades sin dominio (fechas, formato)
-└── test/                      setup de Vitest, handlers de MSW, factories
+├── lib/                       utilidades sin dominio (`cn`, fechas)
+└── test/                      setup.ts, msw/ (handlers, server), helpers de render
 ```
+
+Las rutas usan el alias `@/` (configurado en `vite.config.ts` y `tsconfig.app.json`). Los componentes de shadcn se agregan con `npx shadcn@latest add <componente>` (`components.json` ya apunta a `src/components/ui` y a `theme.css`) y después se ajustan a los tokens.
 
 ## Arquitectura por features
 
@@ -121,7 +127,7 @@ No duplicar en Zustand datos que ya están en TanStack Query.
 ## API
 
 - El cliente se genera con **Orval** desde el OpenAPI del backend (`orval.config.ts`): tipos, schemas Zod y hooks de TanStack Query.
-- `src/api/generated/` no se edita a mano. Se regenera con `npm run api:generate`.
+- `src/api/generated/` (`endpoints/`, `model/`, `zod/`) no se edita a mano. Se regenera con `make api-client` (compila el backend, que escribe `apps/backend/openapi/wizer-api.json`, y corre Orval con `httpClient: axios`).
 - CI verifica que el cliente generado esté al día (`infrastructure.md`).
 - Axios (`api/client.ts`) usa `baseURL: '/api/v1'` y `withCredentials: true`.
 - Un interceptor maneja el 401: hace **un** refresh compartido entre peticiones concurrentes, repite la petición original una vez y, si falla, limpia la sesión y redirige a `/ingresar`.

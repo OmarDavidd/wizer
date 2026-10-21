@@ -55,7 +55,7 @@ Con el rate limiter integrado de ASP.NET Core, particionado por usuario autentic
 
 ## 8. Bloqueo de cuenta
 
-Igual que mezcal: 5 fallos por correo en 5 minutos → `429 TOO_MANY_LOGIN_ATTEMPTS`. Un reset de contraseña exitoso desbloquea la cuenta.
+5 fallos por correo en 5 minutos → `429 TOO_MANY_LOGIN_ATTEMPTS`. Un reset de contraseña exitoso desbloquea la cuenta.
 
 ## 9. Contraseñas
 

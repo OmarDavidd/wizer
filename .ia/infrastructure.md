@@ -37,7 +37,63 @@ No hay staging en el MVP.
 | `mailpit` | `axllent/mailpit` | Solo en desarrollo y CI. UI en `:8025` |
 | `alloy` | `grafana/alloy` | Producción. Envía a Loki |
 
-En desarrollo, Vite hace de proxy de `/api`, `/hubs` y `/storage` hacia los contenedores para mantener un solo origen (`vite.config.ts` → `server.proxy`, con `ws: true` para los hubs).
+### Desarrollo
+
+En desarrollo, **la API y el frontend corren en el host** con recarga en caliente. Docker Compose solo levanta la infraestructura:
+
+| Servicio | Cuándo | Puerto (solo `127.0.0.1`) |
+|----------|--------|---------------------------|
+| `postgres` | siempre | `5432` |
+| `mailpit` | siempre | SMTP `1025`, UI http://localhost:8025 |
+| `clamav` | perfil `av` (`make infra-up-av`, espera al health check `clamdcheck.sh`), hace falta desde el módulo Files | `3310` |
+| `minio` | siempre | API S3 `9000`, consola http://localhost:9001 |
+| `minio-init` | una vez, al levantar (`make infra-up`) | crea el bucket privado `wizer` |
+
+Vite hace de proxy de `/api`, `/hubs` (con `ws: true`) y `/storage` hacia la API (`http://localhost:5080`) y el almacenamiento, así se mantiene un solo origen igual que en producción (`apps/frontend/vite.config.ts`). En desarrollo no hace falta Caddy.
+
+### Almacenamiento
+
+Las imágenes oficiales de MinIO (`minio/minio`, `quay.io/minio/minio`) **dejaron de estar disponibles** (verificado el 2026-10-20). Se usa una **imagen propia, compilada desde el código fuente oficial** de MinIO fijado por commit (`infra/minio/Dockerfile`): servidor `RELEASE.2025-09-07T16-13-09Z` y cliente `mc` `RELEASE.2025-08-13T08-35-41Z`. Docker Compose la construye en local (`wizer/minio:2025-09-07`), así que no depende de ninguna imagen de terceros. La primera construcción tarda unos 2 minutos. `minio-init` usa la misma imagen para crear el bucket con `mc`.
+
+- Para actualizar MinIO: cambiar los commits y las versiones de los `ARG` del `Dockerfile` por los de una release oficial más nueva, y reconstruir (`docker compose -f docker-compose.dev.yml build minio`). En producción se publica la misma imagen en el registro del repositorio (`ghcr.io/omardavidd/wizer-minio`) con `release.yml`.
+- Las imágenes base del `Dockerfile` (`golang`, `alpine`) están fijadas por digest. Dependabot (ecosistema `docker`) propone las actualizaciones.
+- MinIO corre como usuario sin privilegios (`minio`). Si un volumen `minio_data` viejo fue creado por otra imagen que corría como `root`, MinIO falla con *Unable to write to the backend*. En desarrollo se resuelve con `make infra-reset` (borra los datos locales).
+- El código usa la abstracción `IFileStorage` (`files.md`). Cambiar de proveedor S3 no toca los módulos.
+
+### Correo
+
+- **Desarrollo y CI:** Mailpit (SMTP). Los correos no salen a internet y se ven en http://localhost:8025. No necesita API key ni dominio, y las pruebas E2E pueden leer los códigos de verificación.
+- **Producción:** Resend, con el dominio del proyecto verificado.
+- Las dos implementan `IEmailSender`. Se elige con `EMAIL_PROVIDER=smtp|resend`.
+
+## Comandos (`Makefile`)
+
+Ejecutar `make` (o `make help`) desde la raíz para ver la lista. Los principales:
+
+| Comando | Qué hace |
+|---------|----------|
+| `make setup` | Primera vez: crea `.env` desde `.env.example`, `dotnet restore` y `npm ci` |
+| `make infra-up` | Levanta PostgreSQL, MinIO y Mailpit en segundo plano y crea el bucket |
+| `make infra-up-av` | Lo mismo más ClamAV |
+| `make infra-down` | Apaga la infraestructura (conserva los datos) |
+| `make infra-reset` | Apaga y **borra** los volúmenes (base de datos vacía) |
+| `make infra-logs` / `make infra-ps` | Logs / estado de los contenedores |
+| `make api` | API con `dotnet watch` en http://localhost:5080 |
+| `make web` | Frontend en http://localhost:5173 |
+| `make test` | Todas las pruebas (`test-back` necesita Docker para Testcontainers) |
+| `make lint` / `make format` | Verificar / aplicar formato y lint de back y front |
+| `make api-client` | Regenera el OpenAPI y el cliente de Orval. Correrlo después de cambiar un endpoint |
+| `make check` | Lo mismo que corre la CI, en local |
+
+Flujo diario:
+
+```bash
+make infra-up     # una vez por sesión
+make api          # terminal 1
+make web          # terminal 2
+```
+
+Sin `make` (por ejemplo, en Windows sin WSL), los comandos equivalentes están dentro del `Makefile` y se pueden copiar tal cual.
 
 ## Exposición de puertos
 
@@ -99,14 +155,16 @@ Scripts en `infra/backup/`. Los backups no se guardan en el mismo disco que los 
 
 ## CI/CD (GitHub Actions)
 
-### `ci.yml` — en cada PR a `develop` y `main`
+### `ci.yml` — en cada PR y push a `develop` y `main` (implementado)
 
 | Job | Pasos |
 |-----|-------|
-| `backend` | `dotnet restore` → `dotnet format --verify-no-changes` → build → unit tests → integration tests (Testcontainers) → reporte de cobertura |
-| `frontend` | `npm ci` → lint → typecheck → `vitest --coverage` → build |
-| `api-contract` | Genera el OpenAPI desde el backend → `orval` → falla si `src/api/generated` cambia sin commitear |
-| `secrets` | trufflehog sobre el diff |
+| `backend` | `dotnet restore --locked-mode` → `dotnet format --verify-no-changes` → build Release (warnings = errores) → unit tests con cobertura → integration tests (Testcontainers) |
+| `frontend` | `npm ci` → oxlint → prettier check → typecheck → `vitest --coverage` → build |
+| `api-contract` | Build del backend (regenera `openapi/wizer-api.json`) → `orval` → falla si el OpenAPI o `src/api/generated` tienen cambios **o archivos nuevos** sin commitear (`git status --porcelain`) |
+| `secrets` | trufflehog (fijado a una versión, `v3.99.3`; Dependabot lo actualiza) sobre el historial |
+
+Los nombres de los jobs (`backend`, `frontend`, `api-contract`, `secrets`) son los que se marcan como *required status checks* en la ruleset.
 
 ### `e2e.yml` — en cada PR a `main` y manual
 

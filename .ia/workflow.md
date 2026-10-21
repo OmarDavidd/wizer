@@ -28,7 +28,7 @@ No crear una segunda implementación de algo que ya existe. Cuando varias partes
 
 ## 4. ODD (features grandes)
 
-Se usa Organic Driven Development, igual que en mezcal:
+Se usa Organic Driven Development (ODD):
 
 - **Tarea chica** (entendida, de riesgo acotado y retomable solo con el diff): se hace directo, sin documento.
 - **`odd/` es local**: está en `.gitignore` y no se sube al repositorio. Cada dev mantiene sus propios documentos de feature.

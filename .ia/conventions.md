@@ -46,7 +46,7 @@
 - Componentes funcionales con props tipadas mediante `type <Component>Props`.
 - Named exports. El default export solo donde el router lo pide.
 - Imports con el alias `@/` desde `src/`.
-- ESLint (con las reglas de react-hooks y jsx-a11y) y Prettier.
+- Lint con **oxlint** (`.oxlintrc.json`, plugins react, react-hooks, jsx-a11y, typescript, import y vitest) y formato con **Prettier** (sin `;`, comillas simples, 100 columnas).
 
 ## PostgreSQL
 

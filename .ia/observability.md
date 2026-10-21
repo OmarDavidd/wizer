@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Logs estructurados y correlacionables, desacoplados de la plataforma de destino. Es el mismo esquema que `plataforma_mezcal`.
+Logs estructurados y correlacionables, desacoplados de la plataforma de destino.
 
 ## Arquitectura
 
