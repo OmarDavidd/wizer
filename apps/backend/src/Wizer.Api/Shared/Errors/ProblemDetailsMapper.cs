@@ -11,6 +11,10 @@ public static class ProblemDetailsMapper
     {
         ValidationException validation => FromValidation(validation),
         AppException app => Create(app.Status, app.Code, app.Message),
+        BadHttpRequestException badRequest => Create(
+            badRequest.StatusCode,
+            ErrorCodes.DefaultFor(badRequest.StatusCode),
+            "The request could not be processed."),
         _ => Create(StatusCodes.Status500InternalServerError, ErrorCodes.InternalError, "An unexpected error occurred."),
     };
 

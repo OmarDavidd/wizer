@@ -39,16 +39,18 @@ public static class LoggingSetup
         return builder;
     }
 
-    /// <summary>One line per request with the route template, status, duration and user. No bodies, no headers.</summary>
+    /// <summary>
+    /// One line per request with the route template, status, duration and user. No bodies, no headers.
+    /// Always Information: exceptions are logged once, by GlobalExceptionHandler. Error only if an
+    /// exception escapes the handler.
+    /// </summary>
     public static IApplicationBuilder UseWizerRequestLogging(this IApplicationBuilder app) =>
         app.UseSerilogRequestLogging(options =>
         {
             options.MessageTemplate =
                 "HTTP {RequestMethod} {RoutePattern} responded {StatusCode} in {Elapsed:0.0000} ms";
-            options.GetLevel = (context, _, exception) =>
-                exception is not null || context.Response.StatusCode >= StatusCodes.Status500InternalServerError
-                    ? LogEventLevel.Error
-                    : LogEventLevel.Information;
+            options.GetLevel = (_, _, exception) =>
+                exception is not null ? LogEventLevel.Error : LogEventLevel.Information;
             options.EnrichDiagnosticContext = (diagnostics, context) =>
             {
                 diagnostics.Set(

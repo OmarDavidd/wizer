@@ -84,6 +84,16 @@ public class ProblemDetailsMapperTests
         Assert.DoesNotContain("Secret", problem.Detail);
     }
 
+    [Fact]
+    public void Map_BadHttpRequestException_KeepsItsClientStatus()
+    {
+        var problem = ProblemDetailsMapper.Map(
+            new Microsoft.AspNetCore.Http.BadHttpRequestException("Request body too large.", 413));
+
+        Assert.Equal(413, problem.Status);
+        Assert.Equal(ErrorCodes.PayloadTooLarge, problem.Extensions["code"]);
+    }
+
     [Theory]
     [InlineData(400, "BAD_REQUEST")]
     [InlineData(401, "UNAUTHORIZED")]
