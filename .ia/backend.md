@@ -60,7 +60,8 @@ No crear carpetas globales de negocio (`Controllers/`, `Services/`, `Repositorie
   dotnet user-secrets --project apps/backend/src/Wizer.Api set ConnectionStrings:Wizer "<connection string>"
   ```
   La connection string es la misma que imprime `make -n api` (host `localhost`, y base, usuario, contraseña y puerto de tu `.env`).
-- Documentación interactiva con Scalar en `/api/docs` (solo en desarrollo; se agrega con el primer endpoint). Hoy el documento OpenAPI se sirve en `/openapi/v1.json`.
+- Documentación interactiva con Scalar en `/api/docs` y documento OpenAPI en `/openapi/v1.json` (solo en desarrollo).
+- Health checks: `/health/live` (el proceso responde) y `/health/ready` (PostgreSQL, MinIO y ClamAV). Leen `ConnectionStrings:Wizer`, `Minio:Endpoint` y `ClamAv:Host`/`ClamAv:Port` al ejecutarse; los valores de desarrollo de MinIO y ClamAV están en `appsettings.Development.json`. Sin ClamAV levantado (`make infra-up-av`), `/health/ready` responde 503.
 
 ## Estructura de un módulo
 
