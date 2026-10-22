@@ -37,12 +37,31 @@ public class HttpContextCurrentUserTests
         Assert.Throws<InvalidOperationException>(() => sut.Id);
     }
 
-    [Fact]
-    public void Role_UnknownRoleClaim_ThrowsInvalidOperation()
+    [Theory]
+    [InlineData("student", PlatformRole.Student)]
+    [InlineData("teacher", PlatformRole.Teacher)]
+    [InlineData("admin", PlatformRole.Admin)]
+    public void Role_KnownRoleName_ReturnsRole(string claim, PlatformRole expected)
     {
         var sut = CreateSut(
             new Claim(WizerClaimTypes.Subject, Guid.CreateVersion7().ToString()),
-            new Claim(WizerClaimTypes.Role, "superuser"));
+            new Claim(WizerClaimTypes.Role, claim));
+
+        Assert.Equal(expected, sut.Role);
+    }
+
+    [Theory]
+    [InlineData("superuser")]
+    [InlineData("2")]
+    [InlineData("Student,Teacher")]
+    [InlineData("Admin")]
+    [InlineData(" admin")]
+    [InlineData("")]
+    public void Role_AnythingButAKnownRoleName_ThrowsInvalidOperation(string claim)
+    {
+        var sut = CreateSut(
+            new Claim(WizerClaimTypes.Subject, Guid.CreateVersion7().ToString()),
+            new Claim(WizerClaimTypes.Role, claim));
 
         Assert.Throws<InvalidOperationException>(() => sut.Role);
     }

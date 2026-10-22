@@ -3,18 +3,21 @@ using System.Security.Claims;
 namespace Wizer.Api.Shared.Auth;
 
 /// <summary>
-/// Reads the current user from the request claims. Endpoints are [Authorize] by default, so a
-/// missing or malformed claim here is a programming error, not a client error.
+/// Reads the current user from the request claims. Only use it behind [Authorize]: a missing or
+/// malformed claim here is a programming error, not a client error.
 /// </summary>
 public sealed class HttpContextCurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUser
 {
     public Guid Id => ParseGuid(WizerClaimTypes.Subject);
 
-    public PlatformRole Role =>
-        Enum.TryParse<PlatformRole>(GetClaim(WizerClaimTypes.Role), ignoreCase: true, out var role)
-        && Enum.IsDefined(role)
-            ? role
-            : throw new InvalidOperationException("The current user has no valid role claim.");
+    // Exact names only: Enum.TryParse would also accept "2" or "Student,Teacher".
+    public PlatformRole Role => GetClaim(WizerClaimTypes.Role) switch
+    {
+        "student" => PlatformRole.Student,
+        "teacher" => PlatformRole.Teacher,
+        "admin" => PlatformRole.Admin,
+        _ => throw new InvalidOperationException("The current user has no valid role claim."),
+    };
 
     public Guid InstitutionId => ParseGuid(WizerClaimTypes.Institution);
 
