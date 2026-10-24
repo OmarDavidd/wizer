@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Wizer.Api.Infrastructure.Antivirus.ClamAV;
+using Wizer.Api.Infrastructure.Authentication;
 using Wizer.Api.Infrastructure.Persistence;
 using Wizer.Api.Infrastructure.Persistence.Seed;
 using Wizer.Api.Infrastructure.Storage.Garage;
@@ -15,6 +16,8 @@ public static class DependencyInjection
     {
         services.Configure<GarageOptions>(configuration.GetSection(GarageOptions.SectionName));
         services.Configure<ClamAvOptions>(configuration.GetSection(ClamAvOptions.SectionName));
+
+        services.AddWizerAuthentication(configuration);
 
         services.AddSingleton<AuditInterceptor>();
         // The connection string is read when a context is created, never at startup, so the
