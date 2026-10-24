@@ -1,0 +1,129 @@
+# Production stack. Images are built on the server from this repository:
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# Only `proxy` publishes a port, on 127.0.0.1: the Cloudflare Tunnel on the host forwards
+# wizer.omard.space to it. Required secrets come from .env.prod (template: infra/prod.env.example).
+name: wizer
+
+services:
+  proxy:
+    image: caddy:2.10-alpine
+    ports:
+      - "127.0.0.1:${WIZER_HTTP_PORT:-8088}:80"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - frontend
+      - backend
+    networks: [edge]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./apps/frontend
+    image: wizer/frontend:local
+    networks: [edge]
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: api
+    image: wizer/backend:local
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Wizer: Host=postgres;Database=${POSTGRES_DB:-wizer};Username=${POSTGRES_USER:-wizer}
+      # Npgsql reads the password from PGPASSWORD, so it never appears in a connection string.
+      PGPASSWORD: ${POSTGRES_PASSWORD:?}
+      Garage__S3Endpoint: http://garage:3900
+      Garage__AdminEndpoint: http://garage:3903
+      ClamAv__Host: clamav
+      ClamAv__Port: "3310"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      garage:
+        condition: service_healthy
+    networks: [edge, internal]
+    restart: unless-stopped
+
+  # Applies pending migrations before the backend starts, then exits.
+  migrator:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: migrator
+    image: wizer/migrator:local
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?}
+    command:
+      - --connection
+      - Host=postgres;Database=${POSTGRES_DB:-wizer};Username=${POSTGRES_USER:-wizer}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+    restart: "no"
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wizer}
+      POSTGRES_USER: ${POSTGRES_USER:-wizer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [internal]
+    restart: unless-stopped
+
+  garage:
+    image: dxflrs/garage:v2.4.1
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?set GARAGE_RPC_SECRET in .env.prod}
+      GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_ACCESS_KEY:?set GARAGE_ACCESS_KEY in .env.prod}
+      GARAGE_DEFAULT_SECRET_KEY: ${GARAGE_SECRET_KEY:?set GARAGE_SECRET_KEY in .env.prod}
+      GARAGE_DEFAULT_BUCKET: ${GARAGE_BUCKET:-wizer}
+    volumes:
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    # On `edge` too, so Caddy can serve /storage.
+    networks: [edge, internal]
+    restart: unless-stopped
+
+  # ~1.5 GB of RAM; downloads its signatures on the first start (several minutes).
+  clamav:
+    image: clamav/clamav:stable
+    volumes:
+      - clamav_db:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10m
+    # `internal` has no internet access; `edge` lets freshclam download signature updates.
+    networks: [edge, internal]
+    restart: unless-stopped
+
+networks:
+  edge:
+  internal:
+    internal: true
+
+volumes:
+  pg_data:
+  garage_meta:
+  garage_data:
+  clamav_db:
