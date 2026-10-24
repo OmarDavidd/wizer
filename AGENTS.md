@@ -47,12 +47,14 @@ Después, los documentos de la tarea:
 |------|------------|
 | Backend | C# · .NET 10 (LTS) · ASP.NET Core Web API · EF Core + Npgsql · FluentValidation · SignalR · Serilog |
 | Frontend | React 19 · Vite · TypeScript estricto · TanStack Router · TanStack Query · Zustand · React Hook Form + Zod · Tailwind CSS v4 · shadcn/ui · Axios · Orval · Excalidraw |
-| Datos | PostgreSQL · MinIO · ClamAV |
+| Datos | PostgreSQL · Garage (S3) · ClamAV |
 | Pruebas | xUnit · Moq · Testcontainers · Vitest · React Testing Library · MSW · Playwright |
 | Infraestructura | Docker · Docker Compose (dev / prod / ci) · GitHub Actions · Home Lab |
 | Observabilidad | `ILogger<T>` + Serilog JSON → Grafana Alloy → Loki → Grafana |
 
 El detalle y lo que está prohibido introducir están en `.ia/README.md`.
+
+**Comandos:** `make help` en la raíz lista todo (levantar la infraestructura, la API, el frontend, las pruebas, el lint y la regeneración del cliente de la API). El detalle está en `.ia/infrastructure.md` §Comandos.
 
 ---
 

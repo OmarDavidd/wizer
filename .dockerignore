@@ -1,0 +1,12 @@
+# Backend image context (repository root): only apps/backend and dotnet-tools.json are copied.
+**/bin/
+**/obj/
+**/TestResults/
+**/node_modules/
+**/dist/
+.git/
+.env
+.env.*
+odd/
+wizer-backend/
+wizer-frontend/

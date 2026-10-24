@@ -1,6 +1,6 @@
 # Wizer — Autenticación
 
-ASP.NET Core con JWT en cookies HttpOnly, con el mismo diseño que `plataforma_mezcal`, más login con Google y cuentas de docente creadas por invitación.
+ASP.NET Core con JWT en cookies HttpOnly, login con Google y cuentas de docente creadas por invitación.
 
 ## Objetivo
 
@@ -112,7 +112,7 @@ La conexión de SignalR, si se corta por un token vencido, se reintenta después
 
 ## Bloqueo por intentos fallidos
 
-Igual que mezcal:
+Reglas:
 
 - 5 fallos por correo dentro de una ventana de 5 minutos → `429 TOO_MANY_LOGIN_ATTEMPTS` hasta que la ventana termina.
 - El conteo es **por correo** (normalizado: trim y minúsculas), exista o no la cuenta.
@@ -123,7 +123,7 @@ Igual que mezcal:
 ## CSRF
 
 - Cookies `SameSite=Strict` y un solo origen. Sin CORS en producción.
-- Sin token antiforgery. Es un riesgo aceptado, igual que en mezcal: si en el futuro hay subdominios no confiables bajo el mismo dominio, agregar validación de `Origin` en las mutaciones.
+- Sin token antiforgery. Es un riesgo aceptado: si en el futuro hay subdominios no confiables bajo el mismo dominio, agregar validación de `Origin` en las mutaciones.
 
 ## Frontend
 

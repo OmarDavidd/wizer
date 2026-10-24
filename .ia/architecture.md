@@ -11,12 +11,12 @@
               │  /          → frontend       │
               │  /api       → backend        │
               │  /hubs      → backend (WS)   │
-              │  /storage   → MinIO          │
+              │  /storage   → Garage         │
               └──────────────────────────────┘
                 │            │            │
                 ▼            ▼            ▼
           ┌─────────┐  ┌───────────┐  ┌───────┐
-          │Frontend │  │  Backend  │  │ MinIO │
+          │Frontend │  │  Backend  │  │Garage │
           │ (nginx, │  │ ASP.NET   │  │       │
           │  SPA)   │  │ Core API  │  └───────┘
           └─────────┘  │ + SignalR │      ▲
@@ -44,20 +44,23 @@ wizer/
 ├── apps/
 │   ├── backend/
 │   │   ├── Wizer.slnx
+│   │   ├── Directory.Build.props   net10.0, nullable, lock files, warnings = errores en Release
+│   │   ├── openapi/wizer-api.json  generado en cada build (fuente de Orval)
 │   │   ├── src/Wizer.Api/
 │   │   └── tests/
 │   │       ├── Wizer.UnitTests/
 │   │       └── Wizer.IntegrationTests/
 │   └── frontend/
 │       ├── src/
-│       ├── e2e/              Playwright
+│       ├── e2e/              Playwright (S4)
 │       └── orval.config.ts
-├── infra/                    reverse proxy, Alloy, scripts de backup
-├── docker-compose.dev.yml
-├── docker-compose.prod.yml
-├── docker-compose.ci.yml
-├── .env.example
-└── .github/workflows/
+├── infra/                    reverse proxy, Alloy, scripts de backup (S4)
+├── Makefile                  comandos de desarrollo (`make help`)
+├── docker-compose.dev.yml    infraestructura local
+├── docker-compose.prod.yml   (S4)
+├── docker-compose.ci.yml     (S4, para E2E)
+├── .editorconfig
+└── .github/                  workflows/ci.yml, dependabot.yml
 ```
 
 ## Backend
@@ -81,7 +84,7 @@ src/Wizer.Api/
 │   └── Admin/             gestión de usuarios docentes y administradores
 ├── Infrastructure/
 │   ├── Persistence/       AppDbContext, migraciones, seed
-│   ├── Storage/MinIO/
+│   ├── Storage/Garage/
 │   ├── Antivirus/ClamAV/
 │   ├── Email/             Resend y SMTP (Mailpit)
 │   ├── Authentication/    JWT, cookies, Google
@@ -91,6 +94,7 @@ src/Wizer.Api/
 │   ├── Exceptions/
 │   ├── Errors/            ProblemDetails y códigos
 │   ├── Auth/              ICurrentUser, políticas
+│   ├── Observability/     Correlation ID
 │   ├── Pagination/
 │   ├── Time/              IClock
 │   └── Ids/               generación de UUID v7
@@ -121,8 +125,10 @@ SPA con React y Vite. Arquitectura por features.
 
 ```text
 src/
-├── app/                   router, providers, layouts
-├── routes/                definición de rutas (TanStack Router)
+├── main.tsx
+├── routeTree.gen.ts       generado por el plugin de TanStack Router (versionado)
+├── app/                   providers.tsx, theme.css (tokens), layouts/
+├── routes/                rutas por archivo (TanStack Router)
 ├── features/
 │   ├── auth/
 │   ├── classes/
@@ -139,12 +145,13 @@ src/
 │   ├── ui/                shadcn/ui (genéricos)
 │   └── common/            compuestos genéricos (EmptyState, Avatar, PageHeader…)
 ├── api/
-│   ├── generated/         salida de Orval (no editar a mano)
-│   ├── client.ts          instancia de Axios
+│   ├── generated/         Orval (no editar): endpoints/, model/, zod/
+│   ├── client.ts          instancia de Axios + mutator de Orval
 │   └── errors.ts          normalización de errores
 ├── realtime/              conexiones SignalR compartidas
 ├── stores/                stores globales de Zustand
-└── lib/                   utilidades sin dominio
+├── lib/                   utilidades sin dominio (cn)
+└── test/                  setup de Vitest, MSW, helpers de render
 ```
 
 Detalles: `frontend.md`.
@@ -164,26 +171,26 @@ Detalles: `authentication.md`.
 ## Archivos
 
 ```text
-Cliente → pide URL de subida → PUT directo a MinIO → confirma
+Cliente → pide URL de subida → PUT directo a Garage → confirma
 → ClamAV escanea en segundo plano → archivo limpio y disponible
-Cliente → pide URL de descarga (solo limpio y autorizado) → GET a MinIO
+Cliente → pide URL de descarga (solo limpio y autorizado) → GET a Garage
 ```
 
 Detalles: `files.md`.
 
 ## Docker
 
-| Servicio | Dev | Prod | CI |
-|----------|-----|------|----|
-| proxy (Caddy) | ✓ | ✓ | ✓ |
-| frontend | Vite dev server | nginx con el build | build |
-| backend | `dotnet watch` | imagen publicada | imagen |
+| Servicio | Dev | Prod | CI (E2E) |
+|----------|-----|------|----------|
+| proxy (Caddy) | — (lo reemplaza el proxy de Vite) | ✓ | ✓ |
+| frontend | en el host: `make web` (Vite) | nginx con el build | build |
+| backend | en el host: `make api` (`dotnet watch`) | imagen publicada | imagen |
 | migrator | — (auto en dev) | one-shot | one-shot |
-| postgres | ✓ | ✓ | ✓ |
-| minio | ✓ | ✓ | ✓ |
-| clamav | ✓ | ✓ | ✓ |
-| mailpit | ✓ | — | ✓ |
-| alloy | opcional | ✓ | — |
+| postgres | ✓ contenedor | ✓ | ✓ |
+| garage | ✓ contenedor | ✓ | ✓ |
+| clamav | opcional (`make infra-up-av`) | ✓ | ✓ |
+| mailpit | ✓ contenedor | — | ✓ |
+| alloy | — | ✓ | — |
 
 Detalles: `infrastructure.md`.
 
@@ -199,7 +206,7 @@ Detalles: `observability.md`.
 
 | ID | Decisión | Fecha |
 |----|----------|-------|
-| ADR-01 | Monolito modular sin MediatR, igual que mezcal | 2026-10-20 |
+| ADR-01 | Monolito modular sin MediatR | 2026-10-20 |
 | ADR-02 | SPA con Vite, sin SSR | 2026-10-20 |
 | ADR-03 | Un solo origen detrás de un reverse proxy | 2026-10-20 |
 | ADR-04 | SignalR en memoria, una instancia, sin Redis | 2026-10-20 |

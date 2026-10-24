@@ -1,6 +1,6 @@
 # Wizer — Manejo de errores
 
-Contrato de errores consistente entre ASP.NET Core y el frontend. Es el mismo que en `plataforma_mezcal`.
+Contrato de errores consistente entre ASP.NET Core y el frontend.
 
 ## Objetivo
 
@@ -12,7 +12,7 @@ Todos los endpoints y hubs devuelven errores predecibles y seguros. El frontend 
 
 ```json
 {
-  "type": "https://wizer.app/errors/validation",
+  "type": "https://wizer.app/errors/validation-error",
   "title": "Validation failed",
   "status": 400,
   "detail": "One or more fields are invalid.",
@@ -60,15 +60,24 @@ Los textos del backend van en inglés. El frontend muestra mensajes en español 
 
 ### Generales
 ```text
+BAD_REQUEST              (cualquier 4xx sin código propio; nunca se reporta un 4xx como INTERNAL_ERROR)
 VALIDATION_ERROR
 UNAUTHORIZED
 FORBIDDEN
 RESOURCE_NOT_FOUND
+METHOD_NOT_ALLOWED
 CONFLICT
 CONCURRENCY_CONFLICT
+PAYLOAD_TOO_LARGE
+UNSUPPORTED_MEDIA_TYPE
 RATE_LIMITED
 INTERNAL_ERROR
+SERVICE_UNAVAILABLE
 ```
+
+Se implementan en `apps/backend/src/Wizer.Api/Shared/Errors/`. Si una respuesta de error no trae `code` (por ejemplo, un 405 que genera el framework), se asigna el código por defecto de su status .
+
+El campo `type` siempre se deriva del `code`: `https://wizer.app/errors/` + el código en minúsculas con guiones (`CLASS_NOT_FOUND` → `https://wizer.app/errors/class-not-found`).
 
 ### Identity
 ```text

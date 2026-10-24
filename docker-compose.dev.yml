@@ -1,0 +1,72 @@
+# Development infrastructure. The API and the frontend run on the host with hot reload
+# (`make api` / `make web`); Vite proxies /api, /hubs and /storage to keep a single origin.
+name: wizer-dev
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wizer}
+      POSTGRES_USER: ${POSTGRES_USER:-wizer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wizer_dev}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Garage: S3-compatible object storage (MinIO's community edition was archived in 2026).
+  # `--single-node --default-bucket` configures the cluster and creates the access key and the
+  # private bucket from the GARAGE_DEFAULT_* variables on every start, so there is no init step.
+  # The image has no shell: run the CLI with `docker compose -f docker-compose.dev.yml exec garage /garage status`.
+  garage:
+    image: dxflrs/garage:v2.4.1
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:-0000000000000000000000000000000000000000000000000000000000000001}
+      GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_ACCESS_KEY:-GK000000000000000000000001}
+      GARAGE_DEFAULT_SECRET_KEY: ${GARAGE_SECRET_KEY:-0000000000000000000000000000000000000000000000000000000000000001}
+      GARAGE_DEFAULT_BUCKET: ${GARAGE_BUCKET:-wizer}
+    ports:
+      - "127.0.0.1:${GARAGE_S3_PORT:-3900}:3900"
+      - "127.0.0.1:${GARAGE_ADMIN_PORT:-3903}:3903"
+    volumes:
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+
+  # Heavy (~1.5 GB RAM, slow first start while it downloads signatures): opt-in with `--profile av`.
+  clamav:
+    image: clamav/clamav:stable
+    profiles: ["av"]
+    ports:
+      - "127.0.0.1:${CLAMAV_PORT:-3310}:3310"
+    volumes:
+      - clamav_db:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10m
+
+volumes:
+  pg_data:
+  garage_meta:
+  garage_data:
+  clamav_db:

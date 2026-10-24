@@ -1,0 +1,50 @@
+# One grouped PR per ecosystem per week. Major upgrades of core toolchain pieces are
+# decided by hand (not mid-MVP), so Dependabot ignores them.
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /apps/backend
+    schedule:
+      interval: weekly
+    target-branch: develop
+    groups:
+      nuget:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /apps/frontend
+    schedule:
+      interval: weekly
+    target-branch: develop
+    groups:
+      npm:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # Types must track the Node runtime we use (Node 24).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+  # Image tags in docker-compose.dev.yml (Garage, PostgreSQL, Mailpit, ClamAV).
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: develop
+    groups:
+      docker:
+        patterns: ["*"]
+    ignore:
+      # A new PostgreSQL major needs a data migration: upgrade by hand.
+      - dependency-name: "postgres"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: develop
+    groups:
+      actions:
+        patterns: ["*"]

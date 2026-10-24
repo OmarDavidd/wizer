@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Logs estructurados y correlacionables, desacoplados de la plataforma de destino. Es el mismo esquema que `plataforma_mezcal`.
+Logs estructurados y correlacionables, desacoplados de la plataforma de destino.
 
 ## Arquitectura
 
@@ -73,7 +73,7 @@ Overrides: `Microsoft.AspNetCore` y `Microsoft.EntityFrameworkCore` en `Warning`
 
 - Contraseñas, códigos de verificación, tokens de invitación o de reset.
 - JWT, refresh tokens, cookies y headers `Authorization`.
-- Connection strings, credenciales de MinIO, API keys.
+- Connection strings, credenciales de Garage, API keys.
 - **Contenido de los mensajes del chat, escenas de pizarra y contenido de archivos.**
 - Bodies de requests y responses.
 - URLs firmadas (contienen la firma).
@@ -90,7 +90,7 @@ Los correos se registran enmascarados (`a***@uni.edu`) solo cuando son necesario
 | Endpoint | Verifica |
 |----------|----------|
 | `/health/live` | El proceso responde |
-| `/health/ready` | PostgreSQL, MinIO y ClamAV disponibles |
+| `/health/ready` | PostgreSQL, Garage y ClamAV disponibles |
 
 Los usa Docker Compose (`healthcheck`) y no requieren autenticación. Responden solo el estado, sin detalles internos.
 
