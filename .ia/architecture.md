@@ -106,7 +106,7 @@ Detalles: `backend.md`. Tiempo real: `realtime.md`.
 ### Dependencias entre módulos
 
 ```text
-Identity ──► Users
+Identity ──► Users, Campuses (campus del registro)
 Classes  ──► Users, Campuses
 Teams    ──► Classes
 Chat     ──► Classes, Teams, Notifications

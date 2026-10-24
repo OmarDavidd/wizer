@@ -22,6 +22,13 @@ public sealed class SchemaBuilder(PostgresFixture fixture)
         return this;
     }
 
+    public async Task<Campus> CampusAsync(bool isActive = true)
+    {
+        var campus = new Campus { InstitutionId = InstitutionId, Name = $"Campus {Guid.CreateVersion7():N}", IsActive = isActive };
+        await fixture.SaveAsync(campus);
+        return campus;
+    }
+
     public async Task<User> UserAsync(PlatformRole role = PlatformRole.Student)
     {
         var user = NewUser(role);
