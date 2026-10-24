@@ -26,9 +26,10 @@ cleanup() {
   docker builder prune -f --max-used-space 5GB >/dev/null
 }
 
+# Always called inside an `if`, where bash ignores `set -e`: every failure must return explicitly.
 deploy_commit() {
-  git checkout --quiet --detach "$1"
-  "${compose[@]}" up -d --build --remove-orphans
+  git checkout --quiet --detach "$1" || return 1
+  "${compose[@]}" up -d --build --remove-orphans || return 1
 }
 
 main() {
@@ -45,7 +46,7 @@ main() {
     return 0
   fi
 
-  echo "Health check failed for ${target:0:7}; rolling back to ${previous:0:7}" >&2
+  echo "Deploy of ${target:0:7} failed; rolling back to ${previous:0:7}" >&2
   "${compose[@]}" ps >&2
   # Migrations are not reverted: a rollback across a schema change needs a manual decision.
   if deploy_commit "$previous" && healthy; then
