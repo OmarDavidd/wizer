@@ -195,7 +195,7 @@ Producción sale **solo de `main`**. Las imágenes se **construyen en el server*
 
 ### Automático: `deploy.yml`
 
-Cuando `ci` termina en verde sobre un push a `main` (o a mano con *Run workflow*):
+Como último job de `ci` en un push a `main`, después de que pasen `backend`, `frontend`, `api-contract` y `secrets` (o a mano con *Run workflow* sobre `main`). No usa `workflow_run`: ese evento corre sobre la rama por defecto (`develop`) y el entorno `production` lo rechaza.
 
 1. El runner entra a la tailnet con `tailscale/github-action` (OIDC, tag `tag:ci`, sin secretos de Tailscale).
 2. Se conecta por SSH como `wizer@DEPLOY_HOST` con la clave `DEPLOY_SSH_KEY`. En el server esa clave está restringida (`restrict,command=...` en `authorized_keys`) a ejecutar `infra/deploy/deploy.sh`: no puede abrir una shell ni elegir qué rama desplegar.
