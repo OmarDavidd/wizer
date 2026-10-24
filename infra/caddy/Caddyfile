@@ -3,6 +3,19 @@
 {
 	admin off
 	auto_https off
+	servers {
+		# Only cloudflared reaches this port (127.0.0.1 on the host, seen here through the Docker
+		# gateway): keep its X-Forwarded-Proto (https) and take the visitor IP from Cf-Connecting-IP.
+		trusted_proxies static private_ranges
+		client_ip_headers Cf-Connecting-IP
+	}
+}
+
+(backend) {
+	reverse_proxy backend:8080 {
+		# A single hop for ASP.NET (ForwardLimit 1): the visitor IP, not the Docker gateway.
+		header_up X-Forwarded-For {client_ip}
+	}
 }
 
 :80 {
@@ -16,17 +29,17 @@
 	}
 
 	handle /api/* {
-		reverse_proxy backend:8080
+		import backend
 	}
 
 	# SignalR hubs (WebSocket upgrades are proxied as-is).
 	handle /hubs/* {
-		reverse_proxy backend:8080
+		import backend
 	}
 
 	# Liveness only; readiness lists internal dependencies and stays private.
 	handle /health/live {
-		reverse_proxy backend:8080
+		import backend
 	}
 
 	# Presigned Garage URLs: the prefix is stripped so Garage sees /{bucket}/{key} (.ia/files.md).

@@ -199,7 +199,8 @@ Como último job de `ci` en un push a `main`, después de que pasen `backend`, `
 
 1. El runner entra a la tailnet con `tailscale/github-action` (OIDC, tag `tag:ci`, sin secretos de Tailscale).
 2. Se conecta por SSH como `wizer@DEPLOY_HOST` con la clave `DEPLOY_SSH_KEY`. En el server esa clave está restringida (`restrict,command=...` en `authorized_keys`) a ejecutar `infra/deploy/deploy.sh`: no puede abrir una shell ni elegir qué rama desplegar.
-3. `deploy.sh` hace `git fetch` + `checkout origin/main`, `docker compose ... up -d --build`, espera `/health/live` y limpia imágenes viejas. Si el health check falla, el job falla.
+3. `deploy.sh` hace `git fetch` + `checkout origin/main`, `docker compose ... up -d --build` y espera `/health/live` (hasta 60 s). Si responde, limpia imágenes sin uso y deja la caché de build en 5 GB como máximo (`docker builder prune --max-used-space`; la caché es del host y la comparte con otras apps).
+4. Si el health check falla, vuelve a desplegar el commit anterior y el job termina en rojo igual. **Las migraciones no se revierten**: si la versión nueva cambió el esquema, el rollback necesita una decisión manual.
 
 Configuración en GitHub, entorno `production` (solo despliega desde `main`):
 
@@ -222,6 +223,7 @@ infra/deploy/deploy.sh                   # también sirve para desplegar a mano
 - `migrator` aplica las migraciones y termina antes de que arranque el backend.
 - La contraseña de PostgreSQL llega al backend y al migrator por `PGPASSWORD` (Npgsql la lee de ahí), nunca dentro de una cadena de conexión.
 - `proxy` (Caddy, `infra/caddy/Caddyfile`) escucha en HTTP en `127.0.0.1:8088`. El TLS lo termina Cloudflare.
+- Esquema e IP reales: Caddy confía en `cloudflared` (`trusted_proxies private_ranges`), conserva su `X-Forwarded-Proto: https` y manda al backend `X-Forwarded-For` con un solo valor, la IP del visitante tomada de `Cf-Connecting-IP`. El backend los aplica con `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`, que confía en cualquier origen: es seguro solo porque el backend no se publica y únicamente Caddy le llega.
 - El Cloudflare Tunnel del host publica `wizer.omard.space` → `http://localhost:8088`.
 - Todavía no hay seed de producción (institución y primer administrador): depende del módulo Identity.
 - Pendiente: Alloy/Loki, backups automáticos y publicar las imágenes en GHCR con `release.yml`.

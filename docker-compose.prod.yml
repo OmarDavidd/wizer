@@ -32,6 +32,9 @@ services:
     image: wizer/backend:local
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      # Real scheme (https) and visitor IP from Caddy. This trusts any caller, which is safe only
+      # because the backend is not published: Caddy is the only client that can reach it.
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       ConnectionStrings__Wizer: Host=postgres;Database=${POSTGRES_DB:-wizer};Username=${POSTGRES_USER:-wizer}
       # Npgsql reads the password from PGPASSWORD, so it never appears in a connection string.
       PGPASSWORD: ${POSTGRES_PASSWORD:?}
