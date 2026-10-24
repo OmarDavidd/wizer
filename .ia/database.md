@@ -95,6 +95,10 @@ Las entidades y sus `Configuration` viven en `Modules/<Módulo>/Entities` y `Mod
 
 El soft delete se aplica con un filtro global (`HasQueryFilter(x => x.DeletedAt == null)`). Para ignorarlo hace falta `IgnoreQueryFilters()` explícito y justificado.
 
+Equipos (BR-TEAM-06): `chat_channels`, `chat_messages` y `chat_access_grants` referencian el equipo con `Restrict`, así que el borrado físico de un equipo sin entregas tiene que borrar antes su canal y sus mensajes. Al marcar un equipo como borrado, el Service borra sus filas de `team_members`: si no, sus alumnos siguen ocupando `ux_team_members_class_id_user_id` y no pueden unirse a otro equipo de la clase.
+
+`users.email` se guarda normalizado (trim y minúsculas) y el índice único distingue mayúsculas: el Service normaliza siempre antes de guardar y de buscar.
+
 Excepción: `chat_messages` **no** tiene filtro global, porque el historial tiene que mostrar "Mensaje eliminado". Las consultas devuelven las filas borradas y ocultan su contenido.
 
 ## Auditoría
