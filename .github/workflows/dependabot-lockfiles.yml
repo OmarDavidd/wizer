@@ -10,33 +10,55 @@ on:
       - "apps/backend/**/packages.lock.json"
 
 permissions:
-  contents: write
-  actions: write
+  contents: read
 
 jobs:
-  sync:
+  # Restore runs package code (MSBuild targets), so it gets a read-only token.
+  restore:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.head_ref }}
+          persist-credentials: false
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
       - run: dotnet restore apps/backend/Wizer.slnx --force-evaluate
+      - uses: actions/upload-artifact@v7
+        with:
+          name: lock-files
+          path: apps/backend/**/packages.lock.json
+
+  # Fresh checkout with write access that only copies the lock files and pushes.
+  commit:
+    needs: restore
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/download-artifact@v8
+        with:
+          name: lock-files
+          path: apps/backend
       - name: Commit regenerated lock files and re-run ci
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ github.head_ref }}
         run: |
-          if git diff --quiet -- '*packages.lock.json'; then
+          if [ -z "$(git status --porcelain -- '*packages.lock.json')" ]; then
             echo "Lock files already in sync."
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -am 'chore(deps): sync NuGet lock files'
+          git add -- '*packages.lock.json'
+          git commit -m 'chore(deps): sync NuGet lock files'
           git push
           # Pushes made with GITHUB_TOKEN do not trigger workflows, so ci is dispatched explicitly.
           gh workflow run ci.yml --ref "$BRANCH"
