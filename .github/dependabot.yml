@@ -26,8 +26,9 @@ updates:
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
 
-  - package-ecosystem: docker
-    directory: /infra/minio
+  # Image tags in docker-compose.dev.yml (Garage, PostgreSQL, Mailpit, ClamAV).
+  - package-ecosystem: docker-compose
+    directory: /
     schedule:
       interval: weekly
     target-branch: develop
@@ -35,7 +36,8 @@ updates:
       docker:
         patterns: ["*"]
     ignore:
-      - dependency-name: "golang"
+      # A new PostgreSQL major needs a data migration: upgrade by hand.
+      - dependency-name: "postgres"
         update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
