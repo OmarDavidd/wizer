@@ -10,6 +10,7 @@ import { RegisterForm } from '../components/RegisterForm'
 import { useCampuses } from '../hooks/useCampuses'
 import type { RegisterValues } from '../schemas/authSchemas'
 import { serverFieldErrors } from '../utils/fieldErrors'
+import { GoogleSignInContainer } from './GoogleSignInContainer'
 
 export function RegisterContainer() {
   const navigate = useNavigate()
@@ -31,7 +32,7 @@ export function RegisterContainer() {
   }
 
   return (
-    <>
+    <GoogleSignInContainer>
       <AuthHeader title="Crea tu cuenta">Usa tu correo institucional.</AuthHeader>
       <SegmentedLinks label="Acceso" segments={[...accessSegments]} />
       <RegisterForm
@@ -40,6 +41,6 @@ export function RegisterContainer() {
         onSubmit={handleSubmit}
         formError={formError}
       />
-    </>
+    </GoogleSignInContainer>
   )
 }

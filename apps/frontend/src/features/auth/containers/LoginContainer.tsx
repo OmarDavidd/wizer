@@ -14,6 +14,7 @@ import { accessSegments } from '../constants'
 import { LoginForm } from '../components/LoginForm'
 import type { LoginValues } from '../schemas/authSchemas'
 import { serverFieldErrors } from '../utils/fieldErrors'
+import { GoogleSignInContainer } from './GoogleSignInContainer'
 
 export function LoginContainer({ next }: { next?: string }) {
   const queryClient = useQueryClient()
@@ -40,10 +41,10 @@ export function LoginContainer({ next }: { next?: string }) {
   }
 
   return (
-    <>
+    <GoogleSignInContainer next={next}>
       <AuthHeader title="Hola de nuevo">Usa tu cuenta institucional.</AuthHeader>
       <SegmentedLinks label="Acceso" segments={[...accessSegments]} />
       <LoginForm onSubmit={handleSubmit} formError={formError} />
-    </>
+    </GoogleSignInContainer>
   )
 }
