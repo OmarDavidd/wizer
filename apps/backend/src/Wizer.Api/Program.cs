@@ -10,7 +10,7 @@ builder.AddWizerLogging();
 
 builder.Services.AddShared();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddControllers();
+builder.Services.AddWizerControllers();
 builder.Services.AddOpenApi("v1");
 
 var app = builder.Build();
@@ -21,6 +21,8 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseWizerRequestLogging();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {

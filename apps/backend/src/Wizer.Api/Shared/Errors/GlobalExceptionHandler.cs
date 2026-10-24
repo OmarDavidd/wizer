@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics;
+using Wizer.Api.Shared.Exceptions;
 
 namespace Wizer.Api.Shared.Errors;
 
@@ -29,6 +30,11 @@ public sealed class GlobalExceptionHandler(
         }
 
         httpContext.Response.StatusCode = status;
+        if (exception is TooManyRequestsException tooMany)
+        {
+            httpContext.Response.Headers.RetryAfter = Math.Ceiling(tooMany.RetryAfter.TotalSeconds).ToString("0");
+        }
+
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = httpContext,

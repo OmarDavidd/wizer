@@ -38,6 +38,7 @@ services:
       ConnectionStrings__Wizer: Host=postgres;Database=${POSTGRES_DB:-wizer};Username=${POSTGRES_USER:-wizer}
       # Npgsql reads the password from PGPASSWORD, so it never appears in a connection string.
       PGPASSWORD: ${POSTGRES_PASSWORD:?}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?}
       Garage__S3Endpoint: http://garage:3900
       Garage__AdminEndpoint: http://garage:3903
       ClamAv__Host: clamav
