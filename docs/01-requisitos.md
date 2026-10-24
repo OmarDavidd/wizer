@@ -69,7 +69,7 @@ Prioridad: **M** = imprescindible para el MVP · **S** = debería estar en el MV
 | AUTH-02 | Inicio de sesión con correo y contraseña. | M |
 | AUTH-03 | Recuperación de contraseña por correo. | M |
 | AUTH-04 | Cierre de sesión. | M |
-| AUTH-05 | Validar formato de correo y que no esté registrado; mensaje claro si ya existe. | M |
+| AUTH-05 | Validar el formato del correo. El registro no revela si el correo ya existe: responde siempre igual y, si la cuenta existía sin verificar, reenvía el código (`.ia/authentication.md`). | M |
 | AUTH-06 | Opción "recordarme" para mantener la sesión. | S |
 | AUTH-07 | Verificación de correo obligatoria antes del primer inicio de sesión. | M |
 | AUTH-08 | Inicio de sesión con Google (crea una cuenta de alumno si no existe). | M |

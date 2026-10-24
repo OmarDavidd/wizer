@@ -65,7 +65,8 @@ Se usa **Garage** (`dxflrs/garage:v2.4.1`, AGPLv3), un almacenamiento compatible
 
 - **Desarrollo y CI:** Mailpit (SMTP). Los correos no salen a internet y se ven en http://localhost:8025. No necesita API key ni dominio, y las pruebas E2E pueden leer los códigos de verificación.
 - **Producción:** Resend, con el dominio del proyecto verificado.
-- Las dos implementan `IEmailSender`. Se elige con `EMAIL_PROVIDER=smtp|resend`.
+- Las dos implementan `IEmailSender`. Se elige con `EMAIL_PROVIDER=smtp|resend` (clave `Email:Provider`; por defecto `smtp`, con Mailpit en `appsettings.Development.json`).
+- El envío es en segundo plano (`IEmailQueue` + `EmailDispatcher`): un fallo del proveedor solo se registra en el log, con el destinatario enmascarado. Los correos encolados se pierden si el proceso se reinicia (los códigos se pueden reenviar).
 
 ## Comandos (`Makefile`)
 
@@ -133,6 +134,8 @@ SEED_ENABLED
 SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD   (primer administrador en prod)
 VITE_GOOGLE_CLIENT_ID
 ```
+
+La API lee configuración de .NET; el Compose de producción traduce las variables a sus claves (`JWT_SIGNING_KEY` → `Jwt__SigningKey`, `GOOGLE_CLIENT_ID` → `Google__ClientId`, `EMAIL_PROVIDER` → `Email__Provider`, `RESEND_API_KEY` → `Email__ResendApiKey`, `EMAIL_FROM` → `Email__From`, `SMTP_HOST`/`SMTP_PORT` → `Email__SmtpHost`/`Email__SmtpPort`).
 
 ## Dockerfiles
 

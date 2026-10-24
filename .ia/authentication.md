@@ -54,6 +54,7 @@ Autenticación segura sin exponer los tokens a JavaScript, con verificación de 
 Una cuenta sin verificar no puede iniciar sesión (`users.email_verified_at` en `null`).
 
 - Login con la contraseña correcta y sin verificar: `403 EMAIL_NOT_VERIFIED`, se envía un código y no se emiten cookies. Con la contraseña incorrecta responde el `401` de siempre.
+- Cuenta desactivada con la contraseña correcta: `403 ACCOUNT_INACTIVE`.
 - `POST /auth/verify-email` `{ email, code, password }` verifica e inicia sesión (`200` + cookies).
   - Código incorrecto, vencido o usado: `400 INVALID_VERIFICATION_CODE`.
   - Código válido con otra contraseña: `400 VERIFICATION_PASSWORD_MISMATCH`, y la UI ofrece recuperar la contraseña. Así, quien registró un correo ajeno no puede quedarse con la cuenta.
@@ -70,15 +71,18 @@ Una cuenta sin verificar no puede iniciar sesión (`users.email_verified_at` en 
 
 ```text
 Frontend: Google Identity Services → credential (ID token)
-→ POST /api/v1/auth/google { idToken, rememberMe }
+→ POST /api/v1/auth/google { idToken, rememberMe, campusId? }
 Backend: valida la firma, `aud` = GoogleClientId, `iss`, la expiración y `email_verified = true`
 ```
 
 - Si existe un `external_logins` con ese `sub` de Google: inicia sesión.
 - Si no existe, pero hay un usuario con ese correo: se vincula **solo** si el correo de la cuenta local ya estaba verificado. Si no, `409 EMAIL_ALREADY_EXISTS` y se pide iniciar sesión con contraseña primero.
-- Si no existe ninguno: crea una cuenta de **alumno**, con el correo verificado (lo garantiza Google) y sin contraseña.
+- Si no existe ninguno: crea una cuenta de **alumno**, con el correo verificado (lo garantiza Google), sin contraseña y con el nombre que informa Google.
+  - Necesita `campusId` (todo usuario pertenece a un campus, BR-ACC-05). Sin él responde `400 CAMPUS_REQUIRED` y no crea nada: el frontend muestra el selector de campus y reintenta con el mismo `idToken` (dura una hora).
+- Cuenta desactivada: `403 ACCOUNT_INACTIVE`.
+- Las claves de Google se descargan del discovery (`accounts.google.com`) y se cachean; si el token usa una clave desconocida se refrescan una vez.
 - Una cuenta de docente o administrador puede vincular Google desde su perfil, pero **nunca se crea** una cuenta docente con Google.
-- `GOOGLE_TOKEN_INVALID` si el token no valida.
+- `401 GOOGLE_TOKEN_INVALID` si el token no valida (o si `Google:ClientId` no está configurado).
 
 ## Invitación de docentes y administradores
 
