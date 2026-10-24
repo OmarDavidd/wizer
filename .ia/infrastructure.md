@@ -99,13 +99,13 @@ Sin `make` (por ejemplo, en Windows sin WSL), los comandos equivalentes están d
 
 ## Exposición de puertos
 
-- Producción: **solo** `proxy` expone puertos (80 y 443). PostgreSQL, Garage y ClamAV no se publican al host.
+- Producción: **solo** `proxy` publica un puerto, en `127.0.0.1:${WIZER_HTTP_PORT}` (por defecto `8088`), y lo consume el Cloudflare Tunnel del host. PostgreSQL, Garage y ClamAV no se publican al host.
 - Desarrollo: se pueden publicar PostgreSQL (`5432`), Garage (`3900` y `3903`) y Mailpit (`8025`) en `127.0.0.1`.
 
 ## Redes
 
-- `internal`: backend, postgres, garage, clamav y migrator.
-- `edge`: proxy, frontend y backend.
+- `internal` (sin salida a internet): backend, postgres, garage, clamav y migrator.
+- `edge`: proxy, frontend, backend, garage (para `/storage`) y clamav (para descargar firmas).
 - Garage se alcanza desde el navegador solo vía `proxy` → `/storage`.
 
 ## Variables de entorno
@@ -136,9 +136,10 @@ VITE_GOOGLE_CLIENT_ID
 
 ## Dockerfiles
 
-- Multi-stage: build con SDK y runtime con la imagen `aspnet` (backend) o `nginx:alpine` (frontend).
-- Usuario no root, `HEALTHCHECK` y etiquetas OCI.
-- `.dockerignore` excluye `bin/`, `obj/`, `node_modules/`, `.env` y `legacy/`.
+- `apps/backend/Dockerfile` (contexto: raíz del repo): una etapa de build con el SDK y dos targets, `api` (imagen `aspnet`, usuario `app`, puerto 8080) y `migrator` (EF migration bundle, se le pasa `--connection`).
+- `apps/frontend/Dockerfile` (contexto: `apps/frontend`): build de Vite servido por `nginx-unprivileged` en 8080, con fallback de SPA (`apps/frontend/nginx.conf`).
+- Las imágenes `aspnet` no traen `curl`, así que el backend no tiene `HEALTHCHECK`; Caddy expone `/health/live`.
+- `.dockerignore` excluye `bin/`, `obj/`, `node_modules/`, `dist/`, `.env*` y el proyecto anterior.
 
 ## Persistencia
 
@@ -186,22 +187,49 @@ Construye las imágenes `backend`, `frontend` y `migrator` → las publica en `g
 
 Semanal para NuGet, npm, GitHub Actions y las imágenes de `docker-compose.dev.yml` (las majors de PostgreSQL se actualizan a mano).
 
+Dependabot solo actualiza el `packages.lock.json` del proyecto que sube de versión; los proyectos de tests también fijan las dependencias de `Wizer.Api`, así que `restore --locked-mode` fallaría. `dependabot-lockfiles.yml` los regenera en el PR, los commitea y vuelve a lanzar `ci` (un push con `GITHUB_TOKEN` no dispara workflows).
+
 ## Despliegue (MVP)
 
-Manual en el Home Lab:
+Producción sale **solo de `main`**. Las imágenes se **construyen en el server**: no hay registry todavía, y así da igual la arquitectura del server.
+
+### Automático: `deploy.yml`
+
+Cuando `ci` termina en verde sobre un push a `main` (o a mano con *Run workflow*):
+
+1. El runner entra a la tailnet con `tailscale/github-action` (OIDC, tag `tag:ci`, sin secretos de Tailscale).
+2. Se conecta por SSH como `wizer@DEPLOY_HOST` con la clave `DEPLOY_SSH_KEY`. En el server esa clave está restringida (`restrict,command=...` en `authorized_keys`) a ejecutar `infra/deploy/deploy.sh`: no puede abrir una shell ni elegir qué rama desplegar.
+3. `deploy.sh` hace `git fetch` + `checkout origin/main`, `docker compose ... up -d --build`, espera `/health/live` y limpia imágenes viejas. Si el health check falla, el job falla.
+
+Configuración en GitHub, entorno `production` (solo despliega desde `main`):
+
+| Tipo | Nombre | Valor |
+|------|--------|-------|
+| Secret | `DEPLOY_SSH_KEY` | Clave privada del deploy (la pública está en el server) |
+| Variable | `DEPLOY_HOST` | IP de Tailscale del server |
+| Variable | `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan` del server |
+| Variable | `TS_OIDC_CLIENT_ID`, `TS_OIDC_AUDIENCE` | Credencial federada de Tailscale (*Trust credentials* → OpenID Connect, emisor GitHub, sujeto `repo:OmarDavidd/wizer:environment:production`) |
+
+### Server
+
+El usuario `wizer` (grupo `docker`, sin sudo) tiene el repositorio clonado en `~/wizer` y `.env.prod` ahí mismo (permisos `600`, nunca en git). Primera vez:
 
 ```bash
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d    # migrator corre antes del backend
+cp infra/prod.env.example .env.prod      # completar los secretos
+infra/deploy/deploy.sh                   # también sirve para desplegar a mano
 ```
 
-Automatizarlo (runner self-hosted o webhook) queda para después del MVP.
+- `migrator` aplica las migraciones y termina antes de que arranque el backend.
+- La contraseña de PostgreSQL llega al backend y al migrator por `PGPASSWORD` (Npgsql la lee de ahí), nunca dentro de una cadena de conexión.
+- `proxy` (Caddy, `infra/caddy/Caddyfile`) escucha en HTTP en `127.0.0.1:8088`. El TLS lo termina Cloudflare.
+- El Cloudflare Tunnel del host publica `wizer.omard.space` → `http://localhost:8088`.
+- Todavía no hay seed de producción (institución y primer administrador): depende del módulo Identity.
+- Pendiente: Alloy/Loki, backups automáticos y publicar las imágenes en GHCR con `release.yml`.
 
 ## Dominio
 
-Todavía no hay dominio. Hasta tenerlo:
+`wizer.omard.space`, servido por Cloudflare (DNS y Tunnel). El acceso de administración al server es por Tailscale.
 
-- El Home Lab se accede por la red local o por un túnel.
 - **Resend necesita un dominio verificado** para enviar correos a cualquier destinatario (`docs/03-riesgos.md`).
 
 ## Prohibiciones
