@@ -14,9 +14,10 @@ public static class RateLimitPolicies
     public static IServiceCollection AddWizerRateLimiting(this IServiceCollection services) =>
         services.AddRateLimiter(options =>
         {
-            // The client IP comes from the forwarded headers set by the proxy (infrastructure.md).
+            // The client IP comes from the forwarded headers set by the proxy (infrastructure.md). The
+            // route pattern, not the raw path, so casing or a trailing slash cannot open a new bucket.
             options.AddPolicy(AnonymousEmail, context => RateLimitPartition.GetFixedWindowLimiter(
-                $"{context.Connection.RemoteIpAddress}|{context.Request.Path}",
+                $"{context.Connection.RemoteIpAddress}|{(context.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText}",
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 5,

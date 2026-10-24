@@ -13,49 +13,78 @@ public sealed class LoginAttemptLimiter(IClock clock)
     public const int MaxAttempts = 5;
     public static readonly TimeSpan Window = TimeSpan.FromMinutes(5);
     private const int SweepThreshold = 10_000;
+    private static readonly TimeSpan SweepInterval = TimeSpan.FromMinutes(1);
 
     private readonly ConcurrentDictionary<string, Counter> _counters = new();
+    private readonly Lock _sweepLock = new();
+    private DateTimeOffset _lastSweep = DateTimeOffset.MinValue;
 
     /// <summary>Spends one attempt before the password is checked; throws when the window is used up.</summary>
     public void Reserve(string normalizedEmail)
     {
         var now = clock.UtcNow;
-        if (_counters.Count > SweepThreshold)
+        SweepIfNeeded(now);
+
+        while (true)
         {
-            Sweep(now);
-        }
-
-        var counter = _counters.GetOrAdd(normalizedEmail, _ => new Counter(now));
-        lock (counter)
-        {
-            if (now >= counter.WindowStart + Window)
+            var counter = _counters.GetOrAdd(normalizedEmail, _ => new Counter(now));
+            lock (counter)
             {
-                counter.WindowStart = now;
-                counter.Attempts = 0;
-            }
+                // Swept between GetOrAdd and the lock: count on the counter that is in the dictionary now.
+                if (counter.Removed)
+                {
+                    continue;
+                }
 
-            if (counter.Attempts >= MaxAttempts)
-            {
-                throw new TooManyRequestsException(
-                    "Too many failed login attempts. Try again later.",
-                    IdentityErrorCodes.TooManyLoginAttempts,
-                    counter.WindowStart + Window - now);
-            }
+                if (now >= counter.WindowStart + Window)
+                {
+                    counter.WindowStart = now;
+                    counter.Attempts = 0;
+                }
 
-            counter.Attempts++;
+                if (counter.Attempts >= MaxAttempts)
+                {
+                    throw new TooManyRequestsException(
+                        "Too many failed login attempts. Try again later.",
+                        IdentityErrorCodes.TooManyLoginAttempts,
+                        counter.WindowStart + Window - now);
+                }
+
+                counter.Attempts++;
+                return;
+            }
         }
     }
 
     /// <summary>After a correct password or a password reset.</summary>
     public void Reset(string normalizedEmail) => _counters.TryRemove(normalizedEmail, out _);
 
-    private void Sweep(DateTimeOffset now)
+    /// <summary>Drops expired windows, at most once a minute, so many distinct emails cannot make every call scan.</summary>
+    private void SweepIfNeeded(DateTimeOffset now)
     {
-        foreach (var (email, counter) in _counters)
+        if (_counters.Count <= SweepThreshold || now - _lastSweep < SweepInterval)
         {
-            if (now >= counter.WindowStart + Window)
+            return;
+        }
+
+        lock (_sweepLock)
+        {
+            if (now - _lastSweep < SweepInterval)
             {
-                _counters.TryRemove(email, out _);
+                return;
+            }
+
+            _lastSweep = now;
+            foreach (var (email, counter) in _counters)
+            {
+                lock (counter)
+                {
+                    if (now >= counter.WindowStart + Window)
+                    {
+                        counter.Removed = true;
+                        _counters.TryRemove(new KeyValuePair<string, Counter>(email, counter));
+                    }
+                }
             }
         }
     }
@@ -65,5 +94,7 @@ public sealed class LoginAttemptLimiter(IClock clock)
         public DateTimeOffset WindowStart { get; set; } = windowStart;
 
         public int Attempts { get; set; }
+
+        public bool Removed { get; set; }
     }
 }

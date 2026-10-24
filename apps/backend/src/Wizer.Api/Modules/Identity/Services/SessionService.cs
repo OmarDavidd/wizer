@@ -77,7 +77,7 @@ public sealed class SessionService(
         var stored = string.IsNullOrEmpty(refreshToken)
             ? null
             : await refreshTokens.FindByHashAsync(SecretHash.Of(refreshToken), cancellationToken);
-        if (stored is null || stored.ExpiresAt <= now)
+        if (stored is null)
         {
             cookies.Clear();
             return null;
@@ -85,8 +85,14 @@ public sealed class SessionService(
 
         if (stored.RevokedAt is not null)
         {
-            // A rotated token came back: someone else may hold the family, so nobody keeps it.
+            // A rotated token came back (even an expired one): someone else may hold the family, so nobody keeps it.
             await refreshTokens.RevokeFamilyAsync(stored.FamilyId, now, cancellationToken);
+            cookies.Clear();
+            return null;
+        }
+
+        if (stored.ExpiresAt <= now)
+        {
             cookies.Clear();
             return null;
         }

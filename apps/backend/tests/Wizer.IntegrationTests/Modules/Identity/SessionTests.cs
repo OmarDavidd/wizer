@@ -254,6 +254,21 @@ public sealed class SessionTests(PostgresFixture postgres) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Refresh_RotatedTokenReusedAfterItExpired_StillRevokesTheFamily()
+    {
+        var user = await UserAsync();
+        var login = await LoginAsync(user.Email, Password);
+        var first = AuthHttp.CookieValue(login, "wz_refresh")!;
+        Assert.Equal(HttpStatusCode.OK, (await RefreshAsync(first)).StatusCode);
+        _factory.Clock.Advance(TimeSpan.FromDays(7) + TimeSpan.FromSeconds(1));
+
+        await RefreshAsync(first);
+
+        await using var db = postgres.CreateContext();
+        Assert.All(await db.Set<RefreshToken>().Where(t => t.UserId == user.Id).ToListAsync(), t => Assert.NotNull(t.RevokedAt));
+    }
+
+    [Fact]
     public async Task Refresh_ExpiredToken_Returns401()
     {
         var user = await UserAsync();
@@ -342,6 +357,22 @@ public sealed class SessionTests(PostgresFixture postgres) : IAsyncLifetime
 
         await AuthHttp.AssertProblemAsync(response, HttpStatusCode.TooManyRequests, "RATE_LIMITED");
         Assert.True(int.Parse(response.Headers.GetValues("Retry-After").Single()) > 0);
+    }
+
+    [Fact]
+    public async Task AnonymousEmailEndpoints_PathVariantsShareTheSameLimit()
+    {
+        var client = _factory.CreateClient();
+        string[] paths = ["/api/v1/auth/register", "/API/v1/auth/register", "/api/v1/auth/register/", "/Api/V1/Auth/Register", "/api/v1/AUTH/register"];
+        foreach (var path in paths)
+        {
+            var body = new { fullName = "Ada", email = $"{Guid.NewGuid():N}@test.local", password = Password, campusId = _campus.Id };
+            Assert.Equal(HttpStatusCode.Accepted, (await client.PostAsJsonAsync(path, body)).StatusCode);
+        }
+
+        var response = await client.PostAsJsonAsync("/api/v1/auth/register/", new { fullName = "Ada", email = $"{Guid.NewGuid():N}@test.local", password = Password, campusId = _campus.Id });
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
     }
 
     // --- Helpers ---
