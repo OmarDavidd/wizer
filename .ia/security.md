@@ -86,7 +86,7 @@ Los aplica el reverse proxy:
 ## 14. Dependencias
 
 - Lockfiles versionados (`package-lock.json` y `packages.lock.json`).
-- Dependabot activo para NuGet, npm y GitHub Actions (PRs semanales).
+- Dependabot activo para NuGet, npm, GitHub Actions y las imágenes de Docker Compose (PRs semanales).
 - Agregar una dependencia requiere la confirmación del equipo.
 
 ## 15. Datos personales

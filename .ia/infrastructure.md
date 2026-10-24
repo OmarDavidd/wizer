@@ -183,7 +183,7 @@ Construye las imágenes `backend`, `frontend` y `migrator` → las publica en `g
 
 ### Dependabot
 
-Semanal para NuGet, npm y GitHub Actions.
+Semanal para NuGet, npm, GitHub Actions y las imágenes de `docker-compose.dev.yml` (las majors de PostgreSQL se actualizan a mano).
 
 ## Despliegue (MVP)
 
