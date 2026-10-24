@@ -13,8 +13,8 @@ public static class DependencyInjection
                 services.AddSingleton<IEmailSender, SmtpEmailSender>();
                 break;
             case "resend":
-                services.AddHttpClient<ResendEmailSender>(client => client.Timeout = TimeSpan.FromSeconds(10));
-                services.AddSingleton<IEmailSender>(sp => sp.GetRequiredService<ResendEmailSender>());
+                services.AddHttpClient(ResendEmailSender.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(10));
+                services.AddSingleton<IEmailSender, ResendEmailSender>();
                 break;
             default:
                 throw new InvalidOperationException($"Email:Provider '{provider}' is not supported (smtp or resend).");

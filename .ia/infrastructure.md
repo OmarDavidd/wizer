@@ -135,7 +135,7 @@ SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD   (primer administrador en prod)
 VITE_GOOGLE_CLIENT_ID
 ```
 
-La API lee configuración de .NET; el Compose de producción traduce las variables a sus claves (`JWT_SIGNING_KEY` → `Jwt__SigningKey`, `GOOGLE_CLIENT_ID` → `Google__ClientId`, `EMAIL_PROVIDER` → `Email__Provider`, `RESEND_API_KEY` → `Email__ResendApiKey`, `EMAIL_FROM` → `Email__From`, `SMTP_HOST`/`SMTP_PORT` → `Email__SmtpHost`/`Email__SmtpPort`).
+La API lee configuración de .NET; el Compose de producción traduce las variables a sus claves (`JWT_SIGNING_KEY` → `Jwt__SigningKey`, `GOOGLE_CLIENT_ID` → `Google__ClientId`, `EMAIL_PROVIDER` → `Email__Provider`, `RESEND_API_KEY` → `Email__ResendApiKey`, `EMAIL_FROM` → `Email__From`). En desarrollo el SMTP de Mailpit está en `appsettings.Development.json` (`Email:SmtpHost`/`Email:SmtpPort`).
 
 ## Dockerfiles
 

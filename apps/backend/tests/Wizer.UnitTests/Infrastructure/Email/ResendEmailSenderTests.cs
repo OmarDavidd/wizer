@@ -49,11 +49,16 @@ public class ResendEmailSenderTests
     }
 
     private static ResendEmailSender CreateSender(HttpMessageHandler handler, string? apiKey) =>
-        new(new HttpClient(handler), Options.Create(new EmailOptions
+        new(new SingleClientFactory(handler), Options.Create(new EmailOptions
         {
             From = "Wizer <no-reply@wizer.omard.space>",
             ResendApiKey = apiKey,
         }));
+
+    private sealed class SingleClientFactory(HttpMessageHandler handler) : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
+    }
 
     private sealed class RecordingHandler(HttpStatusCode status) : HttpMessageHandler
     {

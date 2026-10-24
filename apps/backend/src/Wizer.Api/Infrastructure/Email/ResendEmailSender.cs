@@ -8,8 +8,10 @@ namespace Wizer.Api.Infrastructure.Email;
 /// Production email through the Resend HTTP API (no SDK). Resend only delivers to any recipient once the
 /// sending domain is verified (.ia/infrastructure.md).
 /// </summary>
-public sealed class ResendEmailSender(HttpClient http, IOptions<EmailOptions> options) : IEmailSender
+public sealed class ResendEmailSender(IHttpClientFactory httpClients, IOptions<EmailOptions> options) : IEmailSender
 {
+    public const string HttpClientName = "resend";
+
     public static readonly Uri Endpoint = new("https://api.resend.com/emails");
 
     public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken)
@@ -32,7 +34,8 @@ public sealed class ResendEmailSender(HttpClient http, IOptions<EmailOptions> op
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ResendApiKey);
 
-        using var response = await http.SendAsync(request, cancellationToken);
+        // A client per send: the factory rotates its handlers, so a singleton sender never pins a stale connection.
+        using var response = await httpClients.CreateClient(HttpClientName).SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 }
