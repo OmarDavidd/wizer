@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Wizer.Api.Infrastructure.Antivirus.ClamAV;
 using Wizer.Api.Infrastructure.Authentication;
+using Wizer.Api.Infrastructure.Email;
 using Wizer.Api.Infrastructure.Persistence;
 using Wizer.Api.Infrastructure.Persistence.Seed;
 using Wizer.Api.Infrastructure.Storage.Garage;
+using Wizer.Api.Shared.Persistence;
 
 namespace Wizer.Api.Infrastructure;
 
@@ -18,6 +20,7 @@ public static class DependencyInjection
         services.Configure<ClamAvOptions>(configuration.GetSection(ClamAvOptions.SectionName));
 
         services.AddWizerAuthentication(configuration);
+        services.AddWizerEmail(configuration);
 
         services.AddSingleton<AuditInterceptor>();
         // The connection string is read when a context is created, never at startup, so the
@@ -33,6 +36,7 @@ public static class DependencyInjection
             AppDbContext.Configure(options, connectionString, provider.GetRequiredService<AuditInterceptor>());
         });
 
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<DevSeeder>();
 
         services.AddHttpClient<GarageHealthCheck>(client => client.Timeout = HealthCheckTimeout);

@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.AddSingleton<JwtSigningKey>();
         services.AddSingleton<IAccessTokenIssuer, AccessTokenIssuer>();
+        services.AddScoped<IAuthCookieWriter, AuthCookieWriter>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
