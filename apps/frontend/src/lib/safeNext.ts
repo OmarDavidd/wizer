@@ -1,0 +1,26 @@
+const accessScreens = [
+  '/ingresar',
+  '/registro',
+  '/verificar-correo',
+  '/recuperar-contrasena',
+  '/activar',
+]
+
+export const defaultAfterLogin = '/inicio'
+
+export function isAccessScreen(pathname: string): boolean {
+  return accessScreens.includes(pathname)
+}
+
+/**
+ * The `next` destination after signing in, only if it is an internal path (a single leading `/`,
+ * no `//` or `/\`) and not another access screen; otherwise `/inicio`. Prevents open redirects.
+ */
+export function safeNext(next: string | undefined | null): string {
+  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) {
+    return defaultAfterLogin
+  }
+
+  const path = next.split(/[?#]/)[0]
+  return isAccessScreen(path ?? '') ? defaultAfterLogin : next
+}

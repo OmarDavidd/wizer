@@ -10,33 +10,113 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as AppInicioRouteImport } from './routes/_app/inicio'
+import { Route as AuthIngresarRouteImport } from './routes/_auth/ingresar'
+import { Route as AuthRecuperarContrasenaRouteImport } from './routes/_auth/recuperar-contrasena'
+import { Route as AuthRegistroRouteImport } from './routes/_auth/registro'
+import { Route as AuthVerificarCorreoRouteImport } from './routes/_auth/verificar-correo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppInicioRoute = AppInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AuthIngresarRoute = AuthIngresarRouteImport.update({
+  id: '/ingresar',
+  path: '/ingresar',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthRecuperarContrasenaRoute = AuthRecuperarContrasenaRouteImport.update({
+  id: '/recuperar-contrasena',
+  path: '/recuperar-contrasena',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthRegistroRoute = AuthRegistroRouteImport.update({
+  id: '/registro',
+  path: '/registro',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthVerificarCorreoRoute = AuthVerificarCorreoRouteImport.update({
+  id: '/verificar-correo',
+  path: '/verificar-correo',
+  getParentRoute: () => AuthRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/inicio': typeof AppInicioRoute
+  '/ingresar': typeof AuthIngresarRoute
+  '/recuperar-contrasena': typeof AuthRecuperarContrasenaRoute
+  '/registro': typeof AuthRegistroRoute
+  '/verificar-correo': typeof AuthVerificarCorreoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/inicio': typeof AppInicioRoute
+  '/ingresar': typeof AuthIngresarRoute
+  '/recuperar-contrasena': typeof AuthRecuperarContrasenaRoute
+  '/registro': typeof AuthRegistroRoute
+  '/verificar-correo': typeof AuthVerificarCorreoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_auth': typeof AuthRouteWithChildren
+  '/_app/inicio': typeof AppInicioRoute
+  '/_auth/ingresar': typeof AuthIngresarRoute
+  '/_auth/recuperar-contrasena': typeof AuthRecuperarContrasenaRoute
+  '/_auth/registro': typeof AuthRegistroRoute
+  '/_auth/verificar-correo': typeof AuthVerificarCorreoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/inicio'
+    | '/ingresar'
+    | '/recuperar-contrasena'
+    | '/registro'
+    | '/verificar-correo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/inicio'
+    | '/ingresar'
+    | '/recuperar-contrasena'
+    | '/registro'
+    | '/verificar-correo'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/_auth'
+    | '/_app/inicio'
+    | '/_auth/ingresar'
+    | '/_auth/recuperar-contrasena'
+    | '/_auth/registro'
+    | '/_auth/verificar-correo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +128,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/inicio': {
+      id: '/_app/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof AppInicioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_auth/ingresar': {
+      id: '/_auth/ingresar'
+      path: '/ingresar'
+      fullPath: '/ingresar'
+      preLoaderRoute: typeof AuthIngresarRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/recuperar-contrasena': {
+      id: '/_auth/recuperar-contrasena'
+      path: '/recuperar-contrasena'
+      fullPath: '/recuperar-contrasena'
+      preLoaderRoute: typeof AuthRecuperarContrasenaRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/registro': {
+      id: '/_auth/registro'
+      path: '/registro'
+      fullPath: '/registro'
+      preLoaderRoute: typeof AuthRegistroRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/verificar-correo': {
+      id: '/_auth/verificar-correo'
+      path: '/verificar-correo'
+      fullPath: '/verificar-correo'
+      preLoaderRoute: typeof AuthVerificarCorreoRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppInicioRoute: typeof AppInicioRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppInicioRoute: AppInicioRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface AuthRouteChildren {
+  AuthIngresarRoute: typeof AuthIngresarRoute
+  AuthRecuperarContrasenaRoute: typeof AuthRecuperarContrasenaRoute
+  AuthRegistroRoute: typeof AuthRegistroRoute
+  AuthVerificarCorreoRoute: typeof AuthVerificarCorreoRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthIngresarRoute: AuthIngresarRoute,
+  AuthRecuperarContrasenaRoute: AuthRecuperarContrasenaRoute,
+  AuthRegistroRoute: AuthRegistroRoute,
+  AuthVerificarCorreoRoute: AuthVerificarCorreoRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
