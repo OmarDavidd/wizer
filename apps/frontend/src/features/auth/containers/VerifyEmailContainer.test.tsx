@@ -25,6 +25,16 @@ describe('/verificar-correo', () => {
     }
   })
 
+  it.each(['/verificar-correo', '/verificar-correo?email=no-es-un-correo'])(
+    'sends %s to /ingresar when there is no valid email',
+    async (path) => {
+      server.use(...signedOut)
+      const { router } = renderRoute(path)
+
+      await waitFor(() => expect(router.state.location.pathname).toBe('/ingresar'))
+    },
+  )
+
   it('moves through the boxes while typing and accepts a pasted code', async () => {
     server.use(...signedOut)
     const { user } = renderRoute('/verificar-correo?email=ana%40uni.edu')

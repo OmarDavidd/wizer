@@ -7,6 +7,8 @@ export const emailField = z
   .email({ error: 'Ingresa un correo válido.' })
   .max(320, { error: 'El correo es demasiado largo.' })
 
+export const isValidEmail = (value: string | undefined) => emailField.safeParse(value).success
+
 export const loginSchema = PostApiV1AuthLoginBody.extend({
   email: emailField,
   password: z.string().min(1, { error: 'Ingresa tu contraseña.' }),

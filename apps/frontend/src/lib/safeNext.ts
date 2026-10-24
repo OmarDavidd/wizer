@@ -8,8 +8,10 @@ const accessScreens = [
 
 export const defaultAfterLogin = '/inicio'
 
+/** Case-insensitive and ignoring a trailing slash, like the router's own matching. */
 export function isAccessScreen(pathname: string): boolean {
-  return accessScreens.includes(pathname)
+  const normalized = pathname.toLowerCase().replace(/\/+$/, '')
+  return accessScreens.includes(normalized)
 }
 
 /**

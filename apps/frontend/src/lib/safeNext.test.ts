@@ -20,6 +20,9 @@ describe('safeNext', () => {
     ['/registro?x=1'],
     ['/verificar-correo'],
     ['/recuperar-contrasena'],
+    ['/Ingresar'],
+    ['/ingresar/'],
+    ['/registro/?x=1'],
   ])('falls back to /inicio for %s', (next) => {
     expect(safeNext(next)).toBe('/inicio')
   })

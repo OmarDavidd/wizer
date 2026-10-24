@@ -11,15 +11,22 @@ interface CodeInputProps {
 
 /**
  * One box per digit (.ia/design/pages.md: "6 casillas para el código"). Typing moves forward, Backspace
- * moves back, and pasting a whole code fills every box.
+ * clears or moves back, and pasting a whole code fills every box.
  */
 export function CodeInput({ label, value, onChange, length = 6, error }: CodeInputProps) {
   const id = useId()
   const inputs = useRef<(HTMLInputElement | null)[]>([])
-  const digits = Array.from({ length }, (_, index) => value[index] ?? '')
+  // Each box keeps its position: an empty box is a space in `value`, so deleting one never shifts the
+  // others. The value is only a valid code once it is all digits.
+  const digits = Array.from({ length }, (_, index) => (value[index] ?? '').trim())
 
   function setDigits(next: string[], focusIndex: number) {
-    onChange(next.join('').slice(0, length))
+    onChange(
+      next
+        .map((digit) => digit || ' ')
+        .join('')
+        .trimEnd(),
+    )
     inputs.current[Math.min(focusIndex, length - 1)]?.focus()
   }
 
