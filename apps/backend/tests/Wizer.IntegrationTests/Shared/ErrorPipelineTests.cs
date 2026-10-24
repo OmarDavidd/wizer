@@ -23,6 +23,8 @@ public class ErrorPipelineTests : IClassFixture<WebApplicationFactory<Program>>
     [InlineData("business", HttpStatusCode.BadRequest, "CLASS_ARCHIVED")]
     [InlineData("validation", HttpStatusCode.BadRequest, "VALIDATION_ERROR")]
     [InlineData("payload-too-large", HttpStatusCode.RequestEntityTooLarge, "PAYLOAD_TOO_LARGE")]
+    [InlineData("unauthorized", HttpStatusCode.Unauthorized, "INVALID_CREDENTIALS")]
+    [InlineData("too-many-requests", HttpStatusCode.TooManyRequests, "TOO_MANY_LOGIN_ATTEMPTS")]
     public async Task ThrownException_ReturnsProblemDetailsWithCodeAndCorrelationId(
         string scenario,
         HttpStatusCode expectedStatus,
@@ -44,6 +46,14 @@ public class ErrorPipelineTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(
             response.Headers.GetValues(CorrelationHeader).Single(),
             root.GetProperty("correlationId").GetString());
+    }
+
+    [Fact]
+    public async Task TooManyRequestsException_SetsRetryAfterInWholeSecondsRoundedUp()
+    {
+        var response = await _factory.CreateClient().GetAsync("/__test/throw/too-many-requests");
+
+        Assert.Equal("91", response.Headers.GetValues("Retry-After").Single());
     }
 
     [Fact]
