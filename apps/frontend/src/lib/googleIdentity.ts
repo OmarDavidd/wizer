@@ -38,14 +38,15 @@ export function loadGoogleIdentity(): Promise<GoogleIdentity> {
     const script = document.createElement('script')
     script.src = scriptUrl
     script.async = true
-    script.onload = () =>
-      window.google?.accounts.id
-        ? resolve(window.google.accounts.id)
-        : reject(new Error('GIS not available'))
-    script.onerror = () => {
+    // A failed load is not cached: the next access screen tries again.
+    const fail = (message: string) => {
       loading = null
-      reject(new Error('GIS failed to load'))
+      script.remove()
+      reject(new Error(message))
     }
+    script.onload = () =>
+      window.google?.accounts.id ? resolve(window.google.accounts.id) : fail('GIS not available')
+    script.onerror = () => fail('GIS failed to load')
     document.head.append(script)
   })
   return loading

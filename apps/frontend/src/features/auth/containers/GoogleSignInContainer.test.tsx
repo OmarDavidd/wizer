@@ -6,31 +6,37 @@ import { server } from '@/test/msw/server'
 import { renderRoute } from '@/test/renderRoute'
 
 // Google Identity Services, faked: the rendered button hands a credential to the registered callback.
-const gis = vi.hoisted(() => ({ credential: 'google-id-token', clientId: '' }))
+const gis = vi.hoisted(() => ({ credential: 'google-id-token', clientId: '', fail: false }))
 vi.mock('@/lib/googleIdentity', () => ({
-  loadGoogleIdentity: async () => ({
-    initialize: (config: {
-      client_id: string
-      callback: (response: { credential: string }) => void
-    }) => {
-      gis.clientId = config.client_id
-      ;(globalThis as { __gisCallback?: typeof config.callback }).__gisCallback = config.callback
-    },
-    renderButton: (parent: HTMLElement) => {
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.textContent = 'Continuar con Google'
-      button.addEventListener('click', () =>
-        (globalThis as { __gisCallback?: (r: { credential: string }) => void }).__gisCallback?.({
-          credential: gis.credential,
-        }),
-      )
-      parent.replaceChildren(button)
-    },
-  }),
+  loadGoogleIdentity: async () => {
+    if (gis.fail) throw new Error('GIS failed to load')
+    return {
+      initialize: (config: {
+        client_id: string
+        callback: (response: { credential: string }) => void
+      }) => {
+        gis.clientId = config.client_id
+        ;(globalThis as { __gisCallback?: typeof config.callback }).__gisCallback = config.callback
+      },
+      renderButton: (parent: HTMLElement) => {
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.textContent = 'Continuar con Google'
+        button.addEventListener('click', () =>
+          (globalThis as { __gisCallback?: (r: { credential: string }) => void }).__gisCallback?.({
+            credential: gis.credential,
+          }),
+        )
+        parent.replaceChildren(button)
+      },
+    }
+  },
 }))
 
-beforeEach(() => vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'client-123.apps.googleusercontent.com'))
+beforeEach(() => {
+  gis.fail = false
+  vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'client-123.apps.googleusercontent.com')
+})
 afterEach(() => vi.unstubAllEnvs())
 
 function googleApi(respond: (body: { idToken: string; campusId?: string | null }) => Response) {
@@ -62,6 +68,27 @@ describe('Continuar con Google', () => {
 
     await screen.findByRole('heading', { name: 'Hola de nuevo' })
     expect(screen.queryByRole('button', { name: 'Continuar con Google' })).not.toBeInTheDocument()
+  })
+
+  it('hides the whole block, divider included, when the Google script cannot load', async () => {
+    gis.fail = true
+    server.use(...signedOut)
+    renderRoute('/ingresar')
+
+    await screen.findByRole('heading', { name: 'Hola de nuevo' })
+    await waitFor(() => expect(screen.queryByText('o')).not.toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: 'Continuar con Google' })).not.toBeInTheDocument()
+  })
+
+  it('lets the campus step go back to the form', async () => {
+    server.use(...signedOut, campuses)
+    googleApi(() => problem(400, 'CAMPUS_REQUIRED'))
+    const { user } = renderRoute('/registro')
+
+    await user.click(await screen.findByRole('button', { name: 'Continuar con Google' }))
+    await user.click(await screen.findByRole('button', { name: 'Volver' }))
+
+    expect(await screen.findByRole('heading', { name: 'Crea tu cuenta' })).toBeInTheDocument()
   })
 
   it('signs in with an existing account and goes to next', async () => {

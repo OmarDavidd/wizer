@@ -1,23 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { loadGoogleIdentity } from '@/lib/googleIdentity'
 
 interface GoogleButtonProps {
   clientId: string
   onCredential: (idToken: string) => void
+  /** The script could not load (blocked, offline): the caller hides the whole block. */
+  onUnavailable: () => void
 }
 
-/**
- * Google's own "Continuar con Google" button (GIS renders it; its look is Google's, not ours). If the
- * script cannot load (blocked, offline), the button is simply not shown.
- */
-export function GoogleButton({ clientId, onCredential }: GoogleButtonProps) {
+/** Google's own "Continuar con Google" button: GIS renders it, so its look is Google's, not ours. */
+export function GoogleButton({ clientId, onCredential, onUnavailable }: GoogleButtonProps) {
   const container = useRef<HTMLDivElement>(null)
   const callback = useRef(onCredential)
-  const [failed, setFailed] = useState(false)
+  const unavailable = useRef(onUnavailable)
 
   useEffect(() => {
     callback.current = onCredential
-  }, [onCredential])
+    unavailable.current = onUnavailable
+  }, [onCredential, onUnavailable])
 
   useEffect(() => {
     let cancelled = false
@@ -40,14 +40,13 @@ export function GoogleButton({ clientId, onCredential }: GoogleButtonProps) {
         })
       })
       .catch(() => {
-        if (!cancelled) setFailed(true)
+        if (!cancelled) unavailable.current()
       })
     return () => {
       cancelled = true
     }
   }, [clientId])
 
-  if (failed) return null
   return (
     <div
       ref={container}

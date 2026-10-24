@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { type ReactNode, useCallback, useState } from 'react'
 import { normalizeError } from '@/api/errors'
+import { Button } from '@/components/ui/button'
 import {
   getGetApiV1AuthMeQueryKey,
   usePostApiV1AuthGoogle,
@@ -26,6 +27,7 @@ export function GoogleSignInContainer({ next, children }: { next?: string; child
   const google = usePostApiV1AuthGoogle()
   const [pendingToken, setPendingToken] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [unavailable, setUnavailable] = useState(false)
 
   const signIn = useCallback(
     async (idToken: string, campusId?: string) => {
@@ -49,10 +51,15 @@ export function GoogleSignInContainer({ next, children }: { next?: string; child
     [google, navigate, next, queryClient],
   )
 
-  if (!clientId) return children
+  if (!clientId || unavailable) return children
 
   if (pendingToken) {
-    return <CampusStep onSubmit={(campusId) => signIn(pendingToken, campusId)} />
+    return (
+      <CampusStep
+        onSubmit={(campusId) => signIn(pendingToken, campusId)}
+        onBack={() => setPendingToken(null)}
+      />
+    )
   }
 
   return (
@@ -64,13 +71,23 @@ export function GoogleSignInContainer({ next, children }: { next?: string; child
           <span aria-hidden="true" className="h-px flex-1 bg-border-strong" />
         </div>
         <FormAlert message={formError} />
-        <GoogleButton clientId={clientId} onCredential={(idToken) => void signIn(idToken)} />
+        <GoogleButton
+          clientId={clientId}
+          onCredential={(idToken) => void signIn(idToken)}
+          onUnavailable={() => setUnavailable(true)}
+        />
       </div>
     </>
   )
 }
 
-function CampusStep({ onSubmit }: { onSubmit: (campusId: string) => Promise<void> }) {
+function CampusStep({
+  onSubmit,
+  onBack,
+}: {
+  onSubmit: (campusId: string) => Promise<void>
+  onBack: () => void
+}) {
   const campuses = useCampuses()
   return (
     <>
@@ -78,6 +95,9 @@ function CampusStep({ onSubmit }: { onSubmit: (campusId: string) => Promise<void
         Elige tu campus para terminar de crear tu cuenta de alumno.
       </AuthHeader>
       <CampusStepForm campuses={campuses.data} onSubmit={onSubmit} />
+      <Button variant="ghost" onClick={onBack} className="self-center">
+        Volver
+      </Button>
     </>
   )
 }
