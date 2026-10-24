@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './loginRequest';
 export * from './meResponse';
 export * from './problemDetails';
 export * from './registerRequest';

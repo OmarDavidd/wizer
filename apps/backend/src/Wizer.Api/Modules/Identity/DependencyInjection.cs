@@ -12,6 +12,8 @@ public static class DependencyInjection
     public static IServiceCollection AddIdentityModule(this IServiceCollection services)
     {
         services.AddScoped<IRegistrationService, RegistrationService>();
+        services.AddScoped<ISessionService, SessionService>();
+        services.AddSingleton<LoginAttemptLimiter>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

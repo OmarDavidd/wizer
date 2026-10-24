@@ -14,25 +14,31 @@ public sealed class SessionIssuer(
     IIdGenerator ids,
     IClock clock) : ISessionIssuer
 {
-    public IssuedSession Issue(User user, bool rememberMe)
+    public IssuedSession Issue(User user, bool rememberMe) => Add(user, familyId: ids.NewId(), rememberMe);
+
+    public IssuedSession Rotate(User user, RefreshToken previous) => Add(user, previous.FamilyId, previous.IsPersistent);
+
+    private IssuedSession Add(User user, Guid familyId, bool persistent)
     {
         var token = SecretHash.NewToken();
-        var days = rememberMe ? options.Value.RefreshTokenRememberDays : options.Value.RefreshTokenDays;
+        var days = persistent ? options.Value.RefreshTokenRememberDays : options.Value.RefreshTokenDays;
         var expiresAt = clock.UtcNow.AddDays(days);
+        var id = ids.NewId();
 
         refreshTokens.Add(new RefreshToken
         {
-            Id = ids.NewId(),
+            Id = id,
             UserId = user.Id,
-            FamilyId = ids.NewId(),
+            FamilyId = familyId,
             TokenHash = SecretHash.Of(token),
-            IsPersistent = rememberMe,
+            IsPersistent = persistent,
             ExpiresAt = expiresAt,
         });
 
         return new IssuedSession(
             accessTokens.Issue(user.Id, user.PlatformRole, user.InstitutionId),
             token,
+            id,
             expiresAt);
     }
 }

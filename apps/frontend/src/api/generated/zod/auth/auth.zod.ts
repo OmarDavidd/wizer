@@ -36,3 +36,35 @@ export const PostApiV1AuthResendVerificationBody = zod.object({
 
 export const PostApiV1AuthResendVerificationResponse = zod.void()
 
+export const PostApiV1AuthLoginBody = zod.object({
+  "email": zod.string(),
+  "password": zod.string(),
+  "rememberMe": zod.boolean()
+})
+
+export const PostApiV1AuthLoginResponse = zod.object({
+  "id": zod.uuid(),
+  "fullName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "campusId": zod.uuid().nullable()
+})
+
+export const PostApiV1AuthRefreshResponse = zod.object({
+  "id": zod.uuid(),
+  "fullName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "campusId": zod.uuid().nullable()
+})
+
+export const PostApiV1AuthLogoutResponse = zod.void()
+
+export const GetApiV1AuthMeResponse = zod.object({
+  "id": zod.uuid(),
+  "fullName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "campusId": zod.uuid().nullable()
+})
+
