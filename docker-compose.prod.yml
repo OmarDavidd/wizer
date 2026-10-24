@@ -35,8 +35,9 @@ services:
       # Real scheme (https) and visitor IP from Caddy. This trusts any caller, which is safe only
       # because the backend is not published: Caddy is the only client that can reach it.
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
-      ConnectionStrings__Wizer: Host=postgres;Database=${POSTGRES_DB:-wizer};Username=${POSTGRES_USER:-wizer}
-      # Npgsql reads the password from PGPASSWORD, so it never appears in a connection string.
+      ConnectionStrings__Wizer: Host=postgres;Database=${POSTGRES_DB:-wizer};Username=${POSTGRES_USER:-wizer};GSS Encryption Mode=Disable
+      # Npgsql reads the password from PGPASSWORD, so it never appears in a connection string. GSS
+      # (Kerberos) encryption is off: the image has no libgssapi and Npgsql would log an error on connect.
       PGPASSWORD: ${POSTGRES_PASSWORD:?}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:?}
       # Without these, Google sign-in answers GOOGLE_TOKEN_INVALID and emails fail (logged), but the API runs.
@@ -67,7 +68,7 @@ services:
       PGPASSWORD: ${POSTGRES_PASSWORD:?}
     command:
       - --connection
-      - Host=postgres;Database=${POSTGRES_DB:-wizer};Username=${POSTGRES_USER:-wizer}
+      - Host=postgres;Database=${POSTGRES_DB:-wizer};Username=${POSTGRES_USER:-wizer};GSS Encryption Mode=Disable
     depends_on:
       postgres:
         condition: service_healthy
