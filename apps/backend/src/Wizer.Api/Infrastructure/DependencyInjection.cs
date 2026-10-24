@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Wizer.Api.Infrastructure.Antivirus.ClamAV;
 using Wizer.Api.Infrastructure.Persistence;
+using Wizer.Api.Infrastructure.Persistence.Seed;
 using Wizer.Api.Infrastructure.Storage.Garage;
 
 namespace Wizer.Api.Infrastructure;
@@ -14,6 +15,22 @@ public static class DependencyInjection
     {
         services.Configure<GarageOptions>(configuration.GetSection(GarageOptions.SectionName));
         services.Configure<ClamAvOptions>(configuration.GetSection(ClamAvOptions.SectionName));
+
+        services.AddSingleton<AuditInterceptor>();
+        // The connection string is read when a context is created, never at startup, so the
+        // OpenAPI build step does not need a database.
+        services.AddDbContext<AppDbContext>((provider, options) =>
+        {
+            var connectionString = provider.GetRequiredService<IConfiguration>().GetConnectionString("Wizer");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException("Connection string 'Wizer' is not configured.");
+            }
+
+            AppDbContext.Configure(options, connectionString, provider.GetRequiredService<AuditInterceptor>());
+        });
+
+        services.AddScoped<DevSeeder>();
 
         services.AddHttpClient<GarageHealthCheck>(client => client.Timeout = HealthCheckTimeout);
 

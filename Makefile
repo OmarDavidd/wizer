@@ -10,10 +10,12 @@ POSTGRES_DB ?= wizer
 POSTGRES_USER ?= wizer
 POSTGRES_PASSWORD ?= wizer_dev
 POSTGRES_PORT ?= 5432
+# Password of every seeded account (admin@wizer.local, docente1@wizer.local, alumno01@wizer.local…).
+SEED_PASSWORD ?= WizerDev2026
 
 .DEFAULT_GOAL := help
 .PHONY: help setup infra-up infra-up-av infra-down infra-reset infra-logs infra-ps \
-	api web test test-back test-front lint format api-client check
+	api web test test-back test-front lint format api-client migration check
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -21,6 +23,7 @@ help: ## List available commands
 setup: ## First-time setup: .env, backend restore, frontend install
 	@test -f .env || ! test -f .env.example || cp .env.example .env
 	dotnet restore $(BACKEND)/Wizer.slnx
+	dotnet tool restore
 	npm ci --prefix $(FRONTEND)
 
 infra-up: ## Start PostgreSQL, Garage (S3 storage) and Mailpit in the background
@@ -43,6 +46,7 @@ infra-ps: ## Show infrastructure containers
 
 api: ## Run the API with hot reload on http://localhost:5080
 	ConnectionStrings__Wizer="Host=localhost;Port=$(POSTGRES_PORT);Database=$(POSTGRES_DB);Username=$(POSTGRES_USER);Password=$(POSTGRES_PASSWORD)" \
+	Seed__Enabled=true Seed__Password="$(SEED_PASSWORD)" \
 		dotnet watch --project $(BACKEND)/src/Wizer.Api run
 
 web: ## Run the frontend on http://localhost:5173
@@ -69,5 +73,9 @@ format: ## Auto-format backend and frontend
 api-client: ## Rebuild the OpenAPI document and regenerate the frontend client (Orval)
 	dotnet build $(BACKEND)/src/Wizer.Api
 	npm run api:generate --prefix $(FRONTEND)
+
+migration: ## Add an EF Core migration: make migration name=AddSomething
+	@test -n "$(name)" || { echo "Usage: make migration name=PascalCaseName"; exit 1; }
+	dotnet ef migrations add $(name) --project $(BACKEND)/src/Wizer.Api --output-dir Infrastructure/Persistence/Migrations
 
 check: lint test ## Everything CI runs, locally

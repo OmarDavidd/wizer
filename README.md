@@ -109,6 +109,7 @@ make web          # terminal 2 → app en http://localhost:5173
 | `make test` | Pruebas de backend (unitarias e integración) y frontend |
 | `make check` | Lint, formato, tipos y pruebas: lo mismo que la CI |
 | `make api-client` | Regenera el cliente TypeScript después de cambiar la API |
+| `make migration name=X` | Crea una migración de la base de datos |
 | `make infra-down` | Apaga la infraestructura |
 
 Mailpit (correos de desarrollo) queda en http://localhost:8025.
