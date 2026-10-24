@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Npgsql;
 using Wizer.Api.Infrastructure.Persistence;
+using Wizer.Api.Infrastructure.Persistence.Seed;
 
 namespace Wizer.IntegrationTests.Infrastructure.Persistence;
 
@@ -26,6 +27,21 @@ public class DatabaseStartupTests(PostgresFixture fixture)
         await StartApiAsync(connectionString, applyMigrations: false);
 
         Assert.False(await DatabaseExistsAsync(connectionString));
+    }
+
+    [Fact]
+    public async Task Startup_SeedEnabledWithoutPassword_FailsToStart()
+    {
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder => builder
+            .UseEnvironment("Development")
+            .UseSetting("ConnectionStrings:Wizer", NewDatabase())
+            .UseSetting(DatabaseStartup.ApplyMigrationsKey, "true")
+            .UseSetting(DevSeeder.EnabledKey, "true")
+            .UseSetting(DevSeeder.PasswordKey, ""));
+
+        var exception = Assert.Throws<InvalidOperationException>(() => factory.CreateClient());
+
+        Assert.Contains(DevSeeder.PasswordKey, exception.Message);
     }
 
     private string NewDatabase() => new NpgsqlConnectionStringBuilder(fixture.ConnectionString)

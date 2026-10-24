@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Wizer.Api.Infrastructure.Antivirus.ClamAV;
 using Wizer.Api.Infrastructure.Persistence;
+using Wizer.Api.Infrastructure.Persistence.Seed;
 using Wizer.Api.Infrastructure.Storage.MinIO;
 
 namespace Wizer.Api.Infrastructure;
@@ -28,6 +29,8 @@ public static class DependencyInjection
 
             AppDbContext.Configure(options, connectionString, provider.GetRequiredService<AuditInterceptor>());
         });
+
+        services.AddScoped<DevSeeder>();
 
         services.AddHttpClient<MinioHealthCheck>(client => client.Timeout = HealthCheckTimeout);
 
