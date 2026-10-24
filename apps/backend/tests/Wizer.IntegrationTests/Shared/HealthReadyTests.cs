@@ -12,7 +12,7 @@ public class HealthReadyTests(WebApplicationFactory<Program> factory)
         // Port 1 on loopback refuses connections, so every dependency fails fast.
         var client = factory.WithWebHostBuilder(builder => builder
                 .UseSetting("ConnectionStrings:Wizer", "Host=127.0.0.1;Port=1;Database=wizer;Timeout=2")
-                .UseSetting("Minio:Endpoint", "http://127.0.0.1:1")
+                .UseSetting("Garage:AdminEndpoint", "http://127.0.0.1:1")
                 .UseSetting("ClamAv:Host", "127.0.0.1")
                 .UseSetting("ClamAv:Port", "1"))
             .CreateClient();
@@ -28,7 +28,7 @@ public class HealthReadyTests(WebApplicationFactory<Program> factory)
     {
         var client = factory.WithWebHostBuilder(builder => builder
                 .UseSetting("ConnectionStrings:Wizer", "")
-                .UseSetting("Minio:Endpoint", "")
+                .UseSetting("Garage:AdminEndpoint", "")
                 .UseSetting("ClamAv:Host", ""))
             .CreateClient();
 

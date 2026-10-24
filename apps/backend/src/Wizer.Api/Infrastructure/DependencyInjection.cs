@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Wizer.Api.Infrastructure.Antivirus.ClamAV;
 using Wizer.Api.Infrastructure.Persistence;
 using Wizer.Api.Infrastructure.Persistence.Seed;
-using Wizer.Api.Infrastructure.Storage.MinIO;
+using Wizer.Api.Infrastructure.Storage.Garage;
 
 namespace Wizer.Api.Infrastructure;
 
@@ -13,7 +13,7 @@ public static class DependencyInjection
 
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<MinioOptions>(configuration.GetSection(MinioOptions.SectionName));
+        services.Configure<GarageOptions>(configuration.GetSection(GarageOptions.SectionName));
         services.Configure<ClamAvOptions>(configuration.GetSection(ClamAvOptions.SectionName));
 
         services.AddSingleton<AuditInterceptor>();
@@ -32,18 +32,18 @@ public static class DependencyInjection
 
         services.AddScoped<DevSeeder>();
 
-        services.AddHttpClient<MinioHealthCheck>(client => client.Timeout = HealthCheckTimeout);
+        services.AddHttpClient<GarageHealthCheck>(client => client.Timeout = HealthCheckTimeout);
 
         services.AddHealthChecks()
             .AddCheck<PostgresHealthCheck>("postgres", tags: [ReadyTag], timeout: HealthCheckTimeout)
-            .AddCheck<MinioHealthCheck>("minio", tags: [ReadyTag], timeout: HealthCheckTimeout)
+            .AddCheck<GarageHealthCheck>("garage", tags: [ReadyTag], timeout: HealthCheckTimeout)
             .AddCheck<ClamAvHealthCheck>("clamav", tags: [ReadyTag], timeout: HealthCheckTimeout);
 
         return services;
     }
 
     /// <summary>
-    /// <c>/health/live</c>: the process responds. <c>/health/ready</c>: PostgreSQL, MinIO and ClamAV
+    /// <c>/health/live</c>: the process responds. <c>/health/ready</c>: PostgreSQL, Garage and ClamAV
     /// are reachable. Both are anonymous and only return the status, without internal details.
     /// </summary>
     public static IEndpointRouteBuilder MapHealthEndpoints(this IEndpointRouteBuilder endpoints)

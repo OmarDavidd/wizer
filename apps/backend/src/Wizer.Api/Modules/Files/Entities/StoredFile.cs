@@ -31,7 +31,7 @@ public enum FileStatus
 }
 
 /// <summary>
-/// Metadata of a binary stored in MinIO (table <c>files</c>). It can be downloaded only when
+/// Metadata of a binary stored in Garage (table <c>files</c>). It can be downloaded only when
 /// <see cref="Status"/> is <see cref="FileStatus.Available"/> (BR-FILE-01). <see cref="ClassId"/> is kept
 /// for every context except avatars, to compute the class quota (BR-FILE-02).
 /// </summary>

@@ -26,9 +26,8 @@ setup: ## First-time setup: .env, backend restore, frontend install
 	dotnet tool restore
 	npm ci --prefix $(FRONTEND)
 
-infra-up: ## Start PostgreSQL, MinIO and Mailpit in the background (and create the bucket)
-	$(COMPOSE) up -d --wait postgres minio mailpit
-	$(COMPOSE) run --rm minio-init
+infra-up: ## Start PostgreSQL, Garage (S3 storage) and Mailpit in the background
+	$(COMPOSE) up -d --wait postgres garage mailpit
 
 infra-up-av: infra-up ## Same as infra-up plus ClamAV; waits until it is ready (first start can take minutes)
 	$(COMPOSE) --profile av up -d --wait clamav

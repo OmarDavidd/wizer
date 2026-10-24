@@ -17,7 +17,7 @@ Estrategia de pruebas automatizadas del backend y el frontend.
 | Nivel | Backend | Frontend |
 |-------|---------|----------|
 | Unitarias | xUnit + Moq | Vitest + React Testing Library |
-| Integración | `WebApplicationFactory` + Testcontainers (PostgreSQL, MinIO) | Vitest + RTL + MSW (containers) |
+| Integración | `WebApplicationFactory` + Testcontainers (PostgreSQL, Garage) | Vitest + RTL + MSW (containers) |
 | Tiempo real | `HubConnection` contra `TestServer` | Vitest con un hub simulado |
 | E2E | — | Playwright contra `docker-compose.ci.yml` |
 
@@ -54,7 +54,7 @@ No crear pruebas triviales de Controllers.
 
 ### Integración
 
-- `WizerApiFactory` levanta la API con PostgreSQL y MinIO **reales** usando Testcontainers. Un contenedor por colección de pruebas, y la base se limpia entre pruebas con Respawn.
+- `WizerApiFactory` levanta la API con PostgreSQL y Garage **reales** usando Testcontainers. Un contenedor por colección de pruebas, y la base se limpia entre pruebas con Respawn.
 - Autenticación de prueba: un helper hace login real y conserva las cookies.
 - Cubren: autorización (401, 403 y 404 por pertenencia), contrato de errores (`code`), persistencia, índices únicos y concurrencia (409).
 - Los repositories se prueban **solo** acá, contra PostgreSQL real, nunca con mocks de EF Core ni con el proveedor InMemory.

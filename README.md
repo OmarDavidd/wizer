@@ -41,7 +41,7 @@ En la educación semipresencial, docentes y alumnos reparten su trabajo entre un
 |------|-------------|
 | **Backend** | C# · .NET 10 · ASP.NET Core · EF Core · SignalR · FluentValidation · Serilog |
 | **Frontend** | React 19 · Vite · TypeScript · TanStack Router y Query · Zustand · Tailwind CSS v4 · shadcn/ui · Orval · Excalidraw |
-| **Datos** | PostgreSQL · MinIO · ClamAV |
+| **Datos** | PostgreSQL · Garage (S3) · ClamAV |
 | **Pruebas** | xUnit · Moq · Testcontainers · Vitest · React Testing Library · MSW · Playwright |
 | **Infraestructura** | Docker Compose · GitHub Actions · Caddy · Grafana Alloy + Loki |
 
@@ -53,7 +53,7 @@ En la educación semipresencial, docentes y alumnos reparten su trabajo entre un
         Reverse proxy (un solo origen)
      /        /api       /hubs      /storage
      │          │          │            │
-  React SPA   ASP.NET Core API       MinIO
+  React SPA   ASP.NET Core API       Garage
               + SignalR (WebSockets)
                   │
        PostgreSQL · ClamAV · Correo
@@ -98,7 +98,7 @@ wizer/
 
 ```bash
 make setup        # primera vez: dependencias de back y front
-make infra-up     # PostgreSQL, MinIO y Mailpit en Docker
+make infra-up     # PostgreSQL, Garage y Mailpit en Docker
 make api          # terminal 1 → API en http://localhost:5080
 make web          # terminal 2 → app en http://localhost:5173
 ```

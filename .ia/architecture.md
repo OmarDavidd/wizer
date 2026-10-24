@@ -11,12 +11,12 @@
               │  /          → frontend       │
               │  /api       → backend        │
               │  /hubs      → backend (WS)   │
-              │  /storage   → MinIO          │
+              │  /storage   → Garage         │
               └──────────────────────────────┘
                 │            │            │
                 ▼            ▼            ▼
           ┌─────────┐  ┌───────────┐  ┌───────┐
-          │Frontend │  │  Backend  │  │ MinIO │
+          │Frontend │  │  Backend  │  │Garage │
           │ (nginx, │  │ ASP.NET   │  │       │
           │  SPA)   │  │ Core API  │  └───────┘
           └─────────┘  │ + SignalR │      ▲
@@ -84,7 +84,7 @@ src/Wizer.Api/
 │   └── Admin/             gestión de usuarios docentes y administradores
 ├── Infrastructure/
 │   ├── Persistence/       AppDbContext, migraciones, seed
-│   ├── Storage/MinIO/
+│   ├── Storage/Garage/
 │   ├── Antivirus/ClamAV/
 │   ├── Email/             Resend y SMTP (Mailpit)
 │   ├── Authentication/    JWT, cookies, Google
@@ -171,9 +171,9 @@ Detalles: `authentication.md`.
 ## Archivos
 
 ```text
-Cliente → pide URL de subida → PUT directo a MinIO → confirma
+Cliente → pide URL de subida → PUT directo a Garage → confirma
 → ClamAV escanea en segundo plano → archivo limpio y disponible
-Cliente → pide URL de descarga (solo limpio y autorizado) → GET a MinIO
+Cliente → pide URL de descarga (solo limpio y autorizado) → GET a Garage
 ```
 
 Detalles: `files.md`.
@@ -187,7 +187,7 @@ Detalles: `files.md`.
 | backend | en el host: `make api` (`dotnet watch`) | imagen publicada | imagen |
 | migrator | — (auto en dev) | one-shot | one-shot |
 | postgres | ✓ contenedor | ✓ | ✓ |
-| minio (+ minio-init) | ✓ contenedor | ✓ | ✓ |
+| garage | ✓ contenedor | ✓ | ✓ |
 | clamav | opcional (`make infra-up-av`) | ✓ | ✓ |
 | mailpit | ✓ contenedor | — | ✓ |
 | alloy | — | ✓ | — |
