@@ -1,28 +1,23 @@
 name: deploy
 
-# Production only ever runs main: this fires after ci passes on a push to main.
-# The server pulls origin/main itself (infra/deploy/deploy.sh); the runner only triggers it.
+# Production only ever runs main: ci calls this after all its jobs pass on a push to main.
+# (A workflow_run trigger would run on the default branch, develop, which the production
+# environment rejects.) The server pulls origin/main itself; the runner only triggers it.
 on:
-  workflow_run:
-    workflows: [ci]
-    types: [completed]
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
   id-token: write
 
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
-
 jobs:
   production:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
     environment:
       name: production
       url: https://wizer.omard.space
