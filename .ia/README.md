@@ -42,7 +42,7 @@ Si una decisión no está documentada y afecta de forma importante al proyecto, 
 
 ### Datos y almacenamiento
 - PostgreSQL
-- MinIO (archivos)
+- Garage (archivos, compatible con S3)
 - ClamAV (escaneo antivirus)
 
 ### Infraestructura
@@ -139,7 +139,7 @@ Flujo de tiempo real:
 | Backend | `backend.md` |
 | Frontend | `frontend.md` |
 | Tiempo real (SignalR, pizarra) | `realtime.md` |
-| Archivos (MinIO, ClamAV) | `files.md` |
+| Archivos (Garage, ClamAV) | `files.md` |
 | Base de datos | `database.md` |
 | API | `api.md` |
 | Errores | `errors.md` |

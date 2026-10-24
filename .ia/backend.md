@@ -61,7 +61,7 @@ No crear carpetas globales de negocio (`Controllers/`, `Services/`, `Repositorie
   ```
   La connection string es la misma que imprime `make -n api` (host `localhost`, y base, usuario, contraseña y puerto de tu `.env`).
 - Documentación interactiva con Scalar en `/api/docs` y documento OpenAPI en `/openapi/v1.json` (solo en desarrollo).
-- Health checks: `/health/live` (el proceso responde) y `/health/ready` (PostgreSQL, MinIO y ClamAV). Leen `ConnectionStrings:Wizer`, `Minio:Endpoint` y `ClamAv:Host`/`ClamAv:Port` al ejecutarse; los valores de desarrollo de MinIO y ClamAV están en `appsettings.Development.json`. Sin ClamAV levantado (`make infra-up-av`), `/health/ready` responde 503.
+- Health checks: `/health/live` (el proceso responde) y `/health/ready` (PostgreSQL, Garage y ClamAV). Leen `ConnectionStrings:Wizer`, `Garage:AdminEndpoint` y `ClamAv:Host`/`ClamAv:Port` al ejecutarse; los valores de desarrollo de Garage y ClamAV están en `appsettings.Development.json`. Sin ClamAV levantado (`make infra-up-av`), `/health/ready` responde 503.
 
 ## Estructura de un módulo
 
@@ -237,7 +237,7 @@ public static IServiceCollection AddClassesModule(this IServiceCollection servic
 ```text
 Infrastructure/
 ├── Persistence/        AppDbContext, Migrations/, Seed/
-├── Storage/MinIO/      IFileStorage
+├── Storage/Garage/     IFileStorage (S3)
 ├── Antivirus/ClamAV/   IAntivirusScanner
 ├── Email/              IEmailSender (Resend, SMTP)
 ├── Authentication/     tokens, cookies, Google
@@ -245,7 +245,7 @@ Infrastructure/
 └── DependencyInjection.cs
 ```
 
-MinIO, ClamAV y el correo son infraestructura, no módulos de negocio. Los módulos los usan mediante interfaces.
+Garage, ClamAV y el correo son infraestructura, no módulos de negocio. Los módulos los usan mediante interfaces.
 
 ## Trabajo en segundo plano
 

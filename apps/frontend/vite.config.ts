@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 const apiTarget = process.env.VITE_DEV_API_URL ?? 'http://localhost:5080'
-const storageTarget = process.env.VITE_DEV_STORAGE_URL ?? 'http://localhost:9000'
+const storageTarget = process.env.VITE_DEV_STORAGE_URL ?? 'http://localhost:3900'
 
 export default defineConfig({
   plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()],

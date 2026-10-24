@@ -12,7 +12,7 @@
 
 - Nunca en código, en el repositorio, en logs ni en el bundle del frontend.
 - Variables de entorno, con `.env` local ignorado por git. `.env.example` documenta todas las variables, con valores ficticios.
-- Secretos de la aplicación: clave de firma de JWT, credenciales de PostgreSQL, credenciales de MinIO, API key de Resend y client secret de Google (el client ID es público).
+- Secretos de la aplicación: clave de firma de JWT, credenciales de PostgreSQL, credenciales de Garage, API key de Resend y client secret de Google (el client ID es público).
 - En el frontend solo van variables `VITE_*` públicas, como `VITE_GOOGLE_CLIENT_ID`. Nunca un secreto con el prefijo `VITE_`.
 - **trufflehog** se ejecuta en CI sobre cada PR (`infrastructure.md`).
 

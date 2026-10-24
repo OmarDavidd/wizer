@@ -31,8 +31,7 @@ No hay staging en el MVP.
 | `backend` | `mcr.microsoft.com/dotnet/aspnet:10.0` | Usuario no root. Health check `/health/ready` |
 | `migrator` | EF migration bundle | One-shot antes del backend (producción y CI) |
 | `postgres` | `postgres:17` | Volumen persistente |
-| `minio` | `minio/minio` | Volumen persistente. Bucket privado `wizer` |
-| `minio-init` | `minio/mc` | Crea el bucket al iniciar |
+| `garage` | `dxflrs/garage` | Almacenamiento S3. Volúmenes persistentes. Bucket privado `wizer` |
 | `clamav` | `clamav/clamav` | Unos 1,5 GB de RAM. Volumen para las firmas |
 | `mailpit` | `axllent/mailpit` | Solo en desarrollo y CI. UI en `:8025` |
 | `alloy` | `grafana/alloy` | Producción. Envía a Loki |
@@ -46,18 +45,20 @@ En desarrollo, **la API y el frontend corren en el host** con recarga en calient
 | `postgres` | siempre | `5432` |
 | `mailpit` | siempre | SMTP `1025`, UI http://localhost:8025 |
 | `clamav` | perfil `av` (`make infra-up-av`, espera al health check `clamdcheck.sh`), hace falta desde el módulo Files | `3310` |
-| `minio` | siempre | API S3 `9000`, consola http://localhost:9001 |
-| `minio-init` | una vez, al levantar (`make infra-up`) | crea el bucket privado `wizer` |
+| `garage` | siempre | API S3 `3900`, API de administración `3903` (solo `GET /health`) |
 
 Vite hace de proxy de `/api`, `/hubs` (con `ws: true`) y `/storage` hacia la API (`http://localhost:5080`) y el almacenamiento, así se mantiene un solo origen igual que en producción (`apps/frontend/vite.config.ts`). En desarrollo no hace falta Caddy.
 
 ### Almacenamiento
 
-Las imágenes oficiales de MinIO (`minio/minio`, `quay.io/minio/minio`) **dejaron de estar disponibles** (verificado el 2026-10-20). Se usa una **imagen propia, compilada desde el código fuente oficial** de MinIO fijado por commit (`infra/minio/Dockerfile`): servidor `RELEASE.2025-09-07T16-13-09Z` y cliente `mc` `RELEASE.2025-08-13T08-35-41Z`. Docker Compose la construye en local (`wizer/minio:2025-09-07`), así que no depende de ninguna imagen de terceros. La primera construcción tarda unos 2 minutos. `minio-init` usa la misma imagen para crear el bucket con `mc`.
+Se usa **Garage** (`dxflrs/garage:v2.4.1`, AGPLv3), un almacenamiento compatible con S3 pensado para self-hosting. Reemplazó a MinIO el 2026-10-24: la edición comunitaria de MinIO entró en modo mantenimiento en diciembre de 2025 y se archivó en 2026, y sus imágenes oficiales dejaron de publicarse.
 
-- Para actualizar MinIO: cambiar los commits y las versiones de los `ARG` del `Dockerfile` por los de una release oficial más nueva, y reconstruir (`docker compose -f docker-compose.dev.yml build minio`). En producción se publica la misma imagen en el registro del repositorio (`ghcr.io/omardavidd/wizer-minio`) con `release.yml`.
-- Las imágenes base del `Dockerfile` (`golang`, `alpine`) están fijadas por digest. Dependabot (ecosistema `docker`) propone las actualizaciones.
-- MinIO corre como usuario sin privilegios (`minio`). Si un volumen `minio_data` viejo fue creado por otra imagen que corría como `root`, MinIO falla con *Unable to write to the backend*. En desarrollo se resuelve con `make infra-reset` (borra los datos locales).
+- Configuración: `infra/garage/garage.toml`, sin secretos. `docker-compose.dev.yml` pasa `GARAGE_RPC_SECRET` y arranca con `garage server --single-node --default-bucket`, que en cada inicio configura el nodo y crea la clave de acceso y el bucket privado desde `GARAGE_DEFAULT_ACCESS_KEY`, `GARAGE_DEFAULT_SECRET_KEY` y `GARAGE_DEFAULT_BUCKET`. No hace falta un contenedor de inicialización.
+- Los valores de desarrollo (`GARAGE_ACCESS_KEY`, `GARAGE_SECRET_KEY`, `GARAGE_RPC_SECRET`) tienen un valor por defecto de baja entropía en el Compose; en producción se generan con `openssl rand -hex 32` (la clave de acceso es `GK` + 24 caracteres hexadecimales).
+- La imagen no tiene shell. El CLI se usa con `docker compose -f docker-compose.dev.yml exec garage /garage status` (o `bucket list`, `key list`).
+- Lo que Wizer usa está soportado y probado: URLs firmadas (SigV4) de `PUT` y `GET`, `response-content-disposition` y `response-content-type` en la descarga, y bucket privado (sin firma responde 403). Garage no implementa políticas de bucket, versionado ni IAM, y Wizer no los necesita.
+- Para actualizar: cambiar el tag de la imagen en el Compose (y en `GarageHealthCheckTests`).
+- Si quedó un volumen viejo de MinIO: `docker volume rm wizer-dev_minio_data`.
 - El código usa la abstracción `IFileStorage` (`files.md`). Cambiar de proveedor S3 no toca los módulos.
 
 ### Correo
@@ -73,7 +74,7 @@ Ejecutar `make` (o `make help`) desde la raíz para ver la lista. Los principale
 | Comando | Qué hace |
 |---------|----------|
 | `make setup` | Primera vez: crea `.env` desde `.env.example`, `dotnet restore` y `npm ci` |
-| `make infra-up` | Levanta PostgreSQL, MinIO y Mailpit en segundo plano y crea el bucket |
+| `make infra-up` | Levanta PostgreSQL, Garage (con el bucket) y Mailpit en segundo plano |
 | `make infra-up-av` | Lo mismo más ClamAV |
 | `make infra-down` | Apaga la infraestructura (conserva los datos) |
 | `make infra-reset` | Apaga y **borra** los volúmenes (base de datos vacía) |
@@ -97,14 +98,14 @@ Sin `make` (por ejemplo, en Windows sin WSL), los comandos equivalentes están d
 
 ## Exposición de puertos
 
-- Producción: **solo** `proxy` expone puertos (80 y 443). PostgreSQL, MinIO y ClamAV no se publican al host.
-- Desarrollo: se pueden publicar PostgreSQL (`5432`), la consola de MinIO (`9001`) y Mailpit (`8025`) en `127.0.0.1`.
+- Producción: **solo** `proxy` expone puertos (80 y 443). PostgreSQL, Garage y ClamAV no se publican al host.
+- Desarrollo: se pueden publicar PostgreSQL (`5432`), Garage (`3900` y `3903`) y Mailpit (`8025`) en `127.0.0.1`.
 
 ## Redes
 
-- `internal`: backend, postgres, minio, clamav y migrator.
+- `internal`: backend, postgres, garage, clamav y migrator.
 - `edge`: proxy, frontend y backend.
-- MinIO se alcanza desde el navegador solo vía `proxy` → `/storage`.
+- Garage se alcanza desde el navegador solo vía `proxy` → `/storage`.
 
 ## Variables de entorno
 
@@ -119,8 +120,9 @@ JWT_ACCESS_MINUTES=15
 JWT_REFRESH_DAYS=7
 JWT_REFRESH_REMEMBER_DAYS=30
 GOOGLE_CLIENT_ID
-MINIO_ENDPOINT / MINIO_ACCESS_KEY / MINIO_SECRET_KEY / MINIO_BUCKET=wizer
-MINIO_PUBLIC_BASE_URL          https://wizer.example/storage
+GARAGE_S3_ENDPOINT / GARAGE_ADMIN_ENDPOINT
+GARAGE_ACCESS_KEY / GARAGE_SECRET_KEY / GARAGE_RPC_SECRET / GARAGE_BUCKET=wizer
+STORAGE_PUBLIC_BASE_URL        https://wizer.example/storage
 CLAMAV_HOST / CLAMAV_PORT=3310
 EMAIL_PROVIDER                 resend | smtp
 RESEND_API_KEY
@@ -139,7 +141,7 @@ VITE_GOOGLE_CLIENT_ID
 
 ## Persistencia
 
-Volúmenes con nombre: `pg_data`, `minio_data`, `clamav_db`.
+Volúmenes con nombre: `pg_data`, `garage_meta`, `garage_data`, `clamav_db`.
 
 ## Backups
 
@@ -148,7 +150,7 @@ Volúmenes con nombre: `pg_data`, `minio_data`, `clamav_db`.
 | Qué | Cómo | Frecuencia | Retención |
 |-----|------|------------|-----------|
 | PostgreSQL | `pg_dump -Fc` desde un contenedor `backup` con cron | Diario, 03:00 | 7 diarios + 4 semanales |
-| MinIO | `mc mirror` del bucket a un disco de backup | Diario, 03:30 | Espejo + snapshot semanal (4) |
+| Garage | `rclone sync` del bucket (S3) a un disco de backup | Diario, 03:30 | Espejo + snapshot semanal (4) |
 | Prueba de restauración | Restaurar el dump en un contenedor temporal | Mensual | — |
 
 Scripts en `infra/backup/`. Los backups no se guardan en el mismo disco que los volúmenes.
@@ -207,5 +209,5 @@ Los agentes NO deben:
 
 - introducir Kubernetes, Coolify ni servicios gestionados sin autorización;
 - hardcodear IPs, dominios o credenciales del Home Lab;
-- publicar puertos de base de datos, MinIO o ClamAV en producción;
+- publicar puertos de base de datos, Garage o ClamAV en producción;
 - modificar `docker-compose.prod.yml`, los workflows de CI o la protección de ramas sin confirmación.

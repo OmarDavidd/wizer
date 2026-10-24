@@ -1,4 +1,4 @@
-# Wizer — Archivos (MinIO y ClamAV)
+# Wizer — Archivos (Garage y ClamAV)
 
 ## Objetivo
 
@@ -6,11 +6,11 @@ Definir cómo se suben, escanean, guardan, sirven y borran los archivos de clase
 
 ## Principios
 
-1. **Binarios en MinIO, metadatos en PostgreSQL** (tabla `files`).
+1. **Binarios en Garage (S3), metadatos en PostgreSQL** (tabla `files`).
 2. **URLs firmadas** para subir y descargar. La API no transporta los bytes.
 3. **Ningún archivo se descarga antes del escaneo antivirus.**
 4. **Autorización en cada descarga**: se pide una URL nueva y de vida corta.
-5. Los módulos usan `IFileStorage` e `IAntivirusScanner`, nunca el SDK de MinIO directamente.
+5. Los módulos usan `IFileStorage` e `IAntivirusScanner`, nunca un SDK de S3 directamente.
 
 ## Contextos
 
@@ -56,7 +56,7 @@ Los valores viven en configuración (`Files:MaxFileSizeBytes`, etc.), no hardcod
    → crea la fila files (status = uploading, object_key generado)
    → 201 { fileId, uploadUrl, expiresAt }   (PUT firmado, 10 min)
 
-2. PUT {uploadUrl}  (el navegador, directo a MinIO vía /storage)
+2. PUT {uploadUrl}  (el navegador, directo a Garage vía /storage)
 
 3. POST /api/v1/files/{fileId}/complete
    → verifica que el objeto exista, su tamaño real y los bytes mágicos
@@ -96,13 +96,15 @@ GET /api/v1/files/{fileId}/download-url?disposition=inline|attachment
 
 ## Borrado
 
-- Soft delete en `files` (`deleted_at`). El objeto en MinIO se borra con un trabajo periódico 30 días después.
+- Soft delete en `files` (`deleted_at`). El objeto en Garage se borra con un trabajo periódico 30 días después.
 - Pueden borrar: quien subió el archivo y el docente de la clase. Los archivos de una entrega ya enviada no se pueden borrar (hay que anular la entrega antes, mientras el plazo lo permita).
 
-## MinIO
+## Garage
 
-- Un bucket privado (`wizer`), sin políticas públicas.
+- Un bucket privado (`wizer`): Garage no tiene acceso público salvo que se active el modo web, que no se usa.
 - Se expone al navegador **solo** a través del reverse proxy en `/storage`, para que las URLs firmadas sean del mismo origen.
+- La firma SigV4 cubre el `Host` y el path **tal como llegan a Garage**. `IFileStorage` firma el path `/{bucket}/{key}` con el `Host` que deja el proxy, y después inserta `/storage` delante del path de la URL que devuelve. En desarrollo Vite quita `/storage` y cambia el `Host` a `localhost:3900` (`changeOrigin`), así que se firma con el host de `Garage:S3Endpoint`. En producción, Caddy tiene que hacer lo mismo o conservar el `Host` público y firmar con ese. Una prueba de integración del flujo completo lo confirma.
+- Configuración del backend: `Garage:S3Endpoint` y `Garage:AdminEndpoint` (`/health/ready` usa `GET /health` de la API de administración).
 - Las credenciales están en variables de entorno. Nunca en código ni en logs.
 
 ## ClamAV
@@ -114,4 +116,4 @@ GET /api/v1/files/{fileId}/download-url?disposition=inline|attachment
 ## Pruebas
 
 - Unitarias: validación de tipo, tamaño, cuota y permisos por contexto.
-- Integración (Testcontainers con MinIO): el flujo completo de subida y descarga. ClamAV se reemplaza por un doble en las pruebas de integración y se valida con un contenedor real solo en el job de CI `e2e`, usando el archivo de prueba EICAR.
+- Integración (Testcontainers con Garage, la misma imagen y `infra/garage/garage.toml` que usa `GarageHealthCheckTests`): el flujo completo de subida y descarga. ClamAV se reemplaza por un doble en las pruebas de integración y se valida con un contenedor real solo en el job de CI `e2e`, usando el archivo de prueba EICAR.
