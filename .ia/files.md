@@ -103,7 +103,7 @@ GET /api/v1/files/{fileId}/download-url?disposition=inline|attachment
 
 - Un bucket privado (`wizer`): Garage no tiene acceso público salvo que se active el modo web, que no se usa.
 - Se expone al navegador **solo** a través del reverse proxy en `/storage`, para que las URLs firmadas sean del mismo origen.
-- La firma SigV4 cubre el `Host` y el path **tal como llegan a Garage**. `IFileStorage` firma el path `/{bucket}/{key}` con el `Host` que deja el proxy, y después inserta `/storage` delante del path de la URL que devuelve. En desarrollo Vite quita `/storage` y cambia el `Host` a `localhost:3900` (`changeOrigin`), así que se firma con el host de `Garage:S3Endpoint`. En producción, Caddy tiene que hacer lo mismo o conservar el `Host` público y firmar con ese. Una prueba de integración del flujo completo lo confirma.
+- La firma SigV4 cubre el `Host` y el path **tal como llegan a Garage**. Por eso `IFileStorage` (todavía sin implementar) tiene que firmar el path `/{bucket}/{key}` con el `Host` que deja el proxy, y después insertar `/storage` delante del path de la URL que devuelve. En desarrollo Vite quita `/storage` y cambia el `Host` a `localhost:3900` (`changeOrigin`), así que se firma con el host de `Garage:S3Endpoint`. En producción, Caddy tiene que hacer lo mismo o conservar el `Host` público y firmar con ese. La prueba de integración del flujo completo (sección Pruebas) tiene que cubrir este caso.
 - Configuración del backend: `Garage:S3Endpoint` y `Garage:AdminEndpoint` (`/health/ready` usa `GET /health` de la API de administración).
 - Las credenciales están en variables de entorno. Nunca en código ni en logs.
 
