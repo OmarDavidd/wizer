@@ -29,15 +29,13 @@ public sealed class GoogleTokenValidator(
             return null;
         }
 
-        var configuration = await googleConfiguration.GetConfigurationAsync(cancellationToken);
-        var result = await Handler.ValidateTokenAsync(idToken, new TokenValidationParameters
+        var result = await ValidateWithGoogleKeysAsync(idToken, clientId, cancellationToken);
+        if (result.Exception is SecurityTokenSignatureKeyNotFoundException)
         {
-            ValidIssuers = ["https://accounts.google.com", "accounts.google.com"],
-            ValidAudience = clientId,
-            IssuerSigningKeys = configuration.SigningKeys,
-            ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
-            ClockSkew = TimeSpan.FromMinutes(1),
-        });
+            // Google rotated its keys since they were cached: fetch them again and retry once.
+            googleConfiguration.RequestRefresh();
+            result = await ValidateWithGoogleKeysAsync(idToken, clientId, cancellationToken);
+        }
 
         if (result.IsValid is false
             || result.Claims.TryGetValue("sub", out var subject) is false
@@ -50,6 +48,22 @@ public sealed class GoogleTokenValidator(
 
         var name = result.Claims.TryGetValue("name", out var value) ? value.ToString() : null;
         return new GoogleIdentity(subject.ToString()!, email.ToString()!, string.IsNullOrWhiteSpace(name) ? null : name.Trim());
+    }
+
+    private async Task<TokenValidationResult> ValidateWithGoogleKeysAsync(
+        string idToken,
+        string clientId,
+        CancellationToken cancellationToken)
+    {
+        var configuration = await googleConfiguration.GetConfigurationAsync(cancellationToken);
+        return await Handler.ValidateTokenAsync(idToken, new TokenValidationParameters
+        {
+            ValidIssuers = ["https://accounts.google.com", "accounts.google.com"],
+            ValidAudience = clientId,
+            IssuerSigningKeys = configuration.SigningKeys,
+            ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+            ClockSkew = TimeSpan.FromMinutes(1),
+        });
     }
 
     // Google sends a JSON boolean; tolerate the string form too.

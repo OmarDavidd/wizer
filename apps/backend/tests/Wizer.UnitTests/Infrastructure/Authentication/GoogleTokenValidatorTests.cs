@@ -81,6 +81,22 @@ public class GoogleTokenValidatorTests
         Assert.Null(await CreateValidator(clientId: null).ValidateAsync(Token(), CancellationToken.None));
     }
 
+    [Fact]
+    public async Task ValidateAsync_TokenSignedWithARotatedKey_RefreshesGoogleKeysOnceAndAccepts()
+    {
+        var rotatedKey = new RsaSecurityKey(RSA.Create(2048)) { KeyId = "rotated-key" };
+        var configuration = new RotatingConfigurationManager(_googleKey, rotatedKey);
+        var validator = new GoogleTokenValidator(
+            Options.Create(new GoogleOptions { ClientId = ClientId }),
+            configuration,
+            NullLogger<GoogleTokenValidator>.Instance);
+
+        var identity = await validator.ValidateAsync(Token(signingKey: rotatedKey), CancellationToken.None);
+
+        Assert.NotNull(identity);
+        Assert.Equal(1, configuration.Refreshes);
+    }
+
     private GoogleTokenValidator CreateValidator(string? clientId = ClientId)
     {
         var configuration = new OpenIdConnectConfiguration();
@@ -120,5 +136,21 @@ public class GoogleTokenValidatorTests
             Expires = expiresAt,
             SigningCredentials = new SigningCredentials(signingKey ?? _googleKey, SecurityAlgorithms.RsaSha256),
         });
+    }
+
+    /// <summary>Serves the old key until a refresh is requested, then the rotated one.</summary>
+    private sealed class RotatingConfigurationManager(SecurityKey oldKey, SecurityKey newKey)
+        : IConfigurationManager<OpenIdConnectConfiguration>
+    {
+        public int Refreshes { get; private set; }
+
+        public Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken cancel)
+        {
+            var configuration = new OpenIdConnectConfiguration();
+            configuration.SigningKeys.Add(Refreshes == 0 ? oldKey : newKey);
+            return Task.FromResult(configuration);
+        }
+
+        public void RequestRefresh() => Refreshes++;
     }
 }
