@@ -51,13 +51,13 @@ Vite hace de proxy de `/api`, `/hubs` (con `ws: true`) y `/storage` hacia la API
 
 ### Almacenamiento
 
-Se usa **Garage** (`dxflrs/garage:v2.4.1`, AGPLv3), un almacenamiento compatible con S3 pensado para self-hosting. Reemplazó a MinIO el 2026-10-24: la edición comunitaria de MinIO entró en modo mantenimiento en diciembre de 2025 y se archivó en 2026, y sus imágenes oficiales dejaron de publicarse.
+Se usa **Garage** (`dxflrs/garage:v2.4.1`, AGPLv3), un almacenamiento compatible con S3 pensado para self-hosting. Reemplazó a MinIO el 2026-10-23: la edición comunitaria de MinIO entró en modo mantenimiento en diciembre de 2025 y se archivó en 2026, y sus imágenes oficiales dejaron de publicarse.
 
 - Configuración: `infra/garage/garage.toml`, sin secretos. `docker-compose.dev.yml` pasa `GARAGE_RPC_SECRET` y arranca con `garage server --single-node --default-bucket`, que en cada inicio configura el nodo y crea la clave de acceso y el bucket privado desde `GARAGE_DEFAULT_ACCESS_KEY`, `GARAGE_DEFAULT_SECRET_KEY` y `GARAGE_DEFAULT_BUCKET`. No hace falta un contenedor de inicialización.
 - Los valores de desarrollo (`GARAGE_ACCESS_KEY`, `GARAGE_SECRET_KEY`, `GARAGE_RPC_SECRET`) tienen un valor por defecto de baja entropía en el Compose; en producción se generan con `openssl rand -hex 32` (la clave de acceso es `GK` + 24 caracteres hexadecimales).
 - La imagen no tiene shell. El CLI se usa con `docker compose -f docker-compose.dev.yml exec garage /garage status` (o `bucket list`, `key list`).
-- Lo que Wizer usa está soportado según la documentación de Garage y se **verificó a mano** el 2026-10-24 contra `v2.4.1`: URLs firmadas (SigV4) de `PUT` y `GET`, `response-content-disposition` y `response-content-type` en la descarga, y bucket privado (sin firma o con firma inválida responde 403). Todavía no hay una prueba automática: la agrega la implementación de `IFileStorage`. Garage no implementa políticas de bucket, versionado ni IAM, y Wizer no los necesita.
-- Para actualizar: cambiar el tag de la imagen en el Compose (y en `GarageHealthCheckTests`).
+- Lo que Wizer usa está soportado según la documentación de Garage y se **verificó a mano** el 2026-10-23 contra `v2.4.1`: URLs firmadas (SigV4) de `PUT` y `GET`, `response-content-disposition` y `response-content-type` en la descarga, y bucket privado (sin firma o con firma inválida responde 403). Todavía no hay una prueba automática: la agrega la implementación de `IFileStorage`. Garage no implementa políticas de bucket, versionado ni IAM, y Wizer no los necesita.
+- Para actualizar: cambiar el tag de la imagen en el Compose (y en `GarageFixture.Image`, en las pruebas de integración).
 - Si ya tenías levantado el stack con MinIO: `docker compose -f docker-compose.dev.yml up -d --remove-orphans` quita el contenedor viejo y `docker volume rm wizer-dev_minio_data` borra su volumen.
 - El código usa la abstracción `IFileStorage` (`files.md`). Cambiar de proveedor S3 no toca los módulos.
 
