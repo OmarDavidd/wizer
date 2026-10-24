@@ -6,6 +6,7 @@
  */
 
 export * from './forgotPasswordRequest';
+export * from './googleSignInRequest';
 export * from './loginRequest';
 export * from './meResponse';
 export * from './problemDetails';

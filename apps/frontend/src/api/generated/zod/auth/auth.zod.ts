@@ -82,3 +82,17 @@ export const PostApiV1AuthResetPasswordBody = zod.object({
 
 export const PostApiV1AuthResetPasswordResponse = zod.void()
 
+export const PostApiV1AuthGoogleBody = zod.object({
+  "idToken": zod.string(),
+  "rememberMe": zod.boolean(),
+  "campusId": zod.uuid().nullable()
+})
+
+export const PostApiV1AuthGoogleResponse = zod.object({
+  "id": zod.uuid(),
+  "fullName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "campusId": zod.uuid().nullable()
+})
+

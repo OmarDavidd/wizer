@@ -14,7 +14,8 @@ namespace Wizer.Api.Modules.Identity.Controllers;
 public sealed class AuthController(
     IRegistrationService registration,
     ISessionService sessions,
-    IPasswordRecoveryService recovery) : ControllerBase
+    IPasswordRecoveryService recovery,
+    IGoogleSignInService google) : ControllerBase
 {
     /// <summary>Always 202 without a body, whether or not the email exists.</summary>
     [HttpPost("register")]
@@ -113,4 +114,18 @@ public sealed class AuthController(
         await recovery.ResetPasswordAsync(request, cancellationToken);
         return NoContent();
     }
+
+    /// <summary>
+    /// Signs in with a Google ID token: 200 with the session cookies. A new account needs <c>campusId</c>
+    /// (400 CAMPUS_REQUIRED otherwise); an unverified local account with the same email is 409.
+    /// </summary>
+    [HttpPost("google")]
+    [AllowAnonymous]
+    [ProducesResponseType<MeResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<MeResponse>> Google(GoogleSignInRequest request, CancellationToken cancellationToken) =>
+        await google.SignInAsync(request, cancellationToken);
 }

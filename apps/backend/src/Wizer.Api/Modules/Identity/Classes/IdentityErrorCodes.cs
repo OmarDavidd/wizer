@@ -10,4 +10,7 @@ public static class IdentityErrorCodes
     public const string InvalidResetCode = "INVALID_RESET_CODE";
     public const string AccountInactive = "ACCOUNT_INACTIVE";
     public const string TooManyLoginAttempts = "TOO_MANY_LOGIN_ATTEMPTS";
+    public const string EmailAlreadyExists = "EMAIL_ALREADY_EXISTS";
+    public const string GoogleTokenInvalid = "GOOGLE_TOKEN_INVALID";
+    public const string CampusRequired = "CAMPUS_REQUIRED";
 }

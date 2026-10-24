@@ -25,6 +25,7 @@ import type {
 
 import type {
   ForgotPasswordRequest,
+  GoogleSignInRequest,
   LoginRequest,
   MeResponse,
   ProblemDetails,
@@ -626,4 +627,65 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getPostApiV1AuthResetPasswordMutationOptions(options), queryClient);
+    }
+    export const postApiV1AuthGoogle = (
+    googleSignInRequest: BodyType<GoogleSignInRequest>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MeResponse>(
+      {url: `/api/v1/auth/google`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: googleSignInRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPostApiV1AuthGoogleMutationKey = () => ['postApiV1AuthGoogle'] as const;
+
+export const getPostApiV1AuthGoogleMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthGoogle>>, TError,PostApiV1AuthGoogleMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthGoogle>>, TError,PostApiV1AuthGoogleMutationVariables, TContext> => {
+
+const mutationKey = getPostApiV1AuthGoogleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1AuthGoogle>>, PostApiV1AuthGoogleMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  postApiV1AuthGoogle(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1AuthGoogleMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AuthGoogle>>>
+    export type PostApiV1AuthGoogleMutationBody = BodyType<GoogleSignInRequest>
+    export type PostApiV1AuthGoogleMutationError = ErrorType<ProblemDetails>
+    export type PostApiV1AuthGoogleMutationVariables = {data: BodyType<GoogleSignInRequest>}
+
+    export const usePostApiV1AuthGoogle = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthGoogle>>, TError,PostApiV1AuthGoogleMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1AuthGoogle>>,
+        TError,
+        PostApiV1AuthGoogleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPostApiV1AuthGoogleMutationOptions(options), queryClient);
     }

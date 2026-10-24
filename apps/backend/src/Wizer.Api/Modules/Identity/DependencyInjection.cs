@@ -14,6 +14,8 @@ public static class DependencyInjection
         services.AddScoped<IRegistrationService, RegistrationService>();
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IPasswordRecoveryService, PasswordRecoveryService>();
+        services.AddScoped<IGoogleSignInService, GoogleSignInService>();
+        services.AddScoped<IExternalLoginRepository, ExternalLoginRepository>();
         services.AddSingleton<LoginAttemptLimiter>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();
