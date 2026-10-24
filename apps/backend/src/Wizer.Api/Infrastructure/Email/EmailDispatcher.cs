@@ -14,7 +14,8 @@ public sealed class EmailDispatcher(EmailQueue queue, IEmailSender sender, ILogg
             {
                 await sender.SendAsync(message, stoppingToken);
             }
-            catch (Exception exception) when (exception is not OperationCanceledException)
+            // Only shutdown stops the loop: a provider timeout also surfaces as a cancellation.
+            catch (Exception exception) when (stoppingToken.IsCancellationRequested is false)
             {
                 logger.LogError(exception, "Email to {Recipient} with subject {Subject} could not be sent",
                     LogMasking.Email(message.To), message.Subject);

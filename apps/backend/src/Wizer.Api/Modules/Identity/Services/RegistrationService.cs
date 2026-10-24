@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Wizer.Api.Infrastructure.Persistence;
 using Wizer.Api.Infrastructure.Authentication;
 using Wizer.Api.Modules.Campuses.Interfaces;
 using Wizer.Api.Modules.Identity.Classes;
@@ -62,7 +63,7 @@ public sealed class RegistrationService(
             {
                 await unitOfWork.SaveChangesAsync(cancellationToken);
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException exception) when (exception.IsUniqueViolation())
             {
                 // The same email registered concurrently; that request sends the code.
                 return;

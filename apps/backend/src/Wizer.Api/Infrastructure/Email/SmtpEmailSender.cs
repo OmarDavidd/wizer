@@ -18,7 +18,7 @@ public sealed class SmtpEmailSender(IOptions<EmailOptions> options) : IEmailSend
             throw new InvalidOperationException("Email:SmtpHost is not configured.");
         }
 
-        using var client = new SmtpClient(settings.SmtpHost, settings.SmtpPort);
+        using var client = new SmtpClient(settings.SmtpHost, settings.SmtpPort) { Timeout = 10_000 };
         using var mail = new MailMessage(settings.From, message.To, message.Subject, message.TextBody)
         {
             BodyEncoding = Encoding.UTF8,

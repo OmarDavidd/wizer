@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Wizer.Api.Infrastructure.Persistence;
 using Wizer.Api.Infrastructure.Email;
 using Wizer.Api.Modules.Identity.Entities;
 using Wizer.Api.Modules.Identity.Interfaces;
@@ -35,7 +36,7 @@ public sealed class VerificationCodeSender(
                 ExpiresAt = now + Lifetime,
             }, cancellationToken);
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException exception) when (exception.IsUniqueViolation())
         {
             // A concurrent request issued a code at the same moment: that one is sent instead.
             return;
