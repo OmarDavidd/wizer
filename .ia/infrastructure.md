@@ -72,13 +72,14 @@ Ejecutar `make` (o `make help`) desde la raíz para ver la lista. Los principale
 
 | Comando | Qué hace |
 |---------|----------|
-| `make setup` | Primera vez: crea `.env` desde `.env.example`, `dotnet restore` y `npm ci` |
+| `make setup` | Primera vez: crea `.env` desde `.env.example`, `dotnet restore`, `dotnet tool restore` (instala `dotnet-ef`) y `npm ci` |
 | `make infra-up` | Levanta PostgreSQL, MinIO y Mailpit en segundo plano y crea el bucket |
 | `make infra-up-av` | Lo mismo más ClamAV |
 | `make infra-down` | Apaga la infraestructura (conserva los datos) |
 | `make infra-reset` | Apaga y **borra** los volúmenes (base de datos vacía) |
 | `make infra-logs` / `make infra-ps` | Logs / estado de los contenedores |
-| `make api` | API con `dotnet watch` en http://localhost:5080 |
+| `make api` | API con `dotnet watch` en http://localhost:5080. Aplica las migraciones y carga el seed de desarrollo |
+| `make migration name=X` | Crea una migración de EF Core (`database.md` §Migraciones) |
 | `make web` | Frontend en http://localhost:5173 |
 | `make test` | Todas las pruebas (`test-back` necesita Docker para Testcontainers) |
 | `make lint` / `make format` | Verificar / aplicar formato y lint de back y front |
