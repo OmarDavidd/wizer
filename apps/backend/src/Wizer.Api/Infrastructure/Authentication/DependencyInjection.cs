@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using Wizer.Api.Infrastructure.Authentication.Google;
 using Wizer.Api.Shared.Auth;
 
 namespace Wizer.Api.Infrastructure.Authentication;
@@ -18,6 +21,15 @@ public static class DependencyInjection
         services.AddSingleton<JwtSigningKey>();
         services.AddSingleton<IAccessTokenIssuer, AccessTokenIssuer>();
         services.AddScoped<IAuthCookieWriter, AuthCookieWriter>();
+
+        services.Configure<GoogleOptions>(configuration.GetSection(GoogleOptions.SectionName));
+        // Google's signing keys are fetched on first use and cached; nothing is downloaded at startup.
+        services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>(_ =>
+            new ConfigurationManager<OpenIdConnectConfiguration>(
+                GoogleTokenValidator.DiscoveryUrl,
+                new OpenIdConnectConfigurationRetriever(),
+                new HttpDocumentRetriever { RequireHttps = true }));
+        services.AddSingleton<IGoogleTokenValidator, GoogleTokenValidator>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {

@@ -5,8 +5,12 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './forgotPasswordRequest';
+export * from './googleSignInRequest';
+export * from './loginRequest';
 export * from './meResponse';
 export * from './problemDetails';
 export * from './registerRequest';
 export * from './resendVerificationRequest';
+export * from './resetPasswordRequest';
 export * from './verifyEmailRequest';

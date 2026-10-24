@@ -39,6 +39,11 @@ services:
       # Npgsql reads the password from PGPASSWORD, so it never appears in a connection string.
       PGPASSWORD: ${POSTGRES_PASSWORD:?}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:?}
+      # Without these, Google sign-in answers GOOGLE_TOKEN_INVALID and emails fail (logged), but the API runs.
+      Google__ClientId: ${GOOGLE_CLIENT_ID:-}
+      Email__Provider: resend
+      Email__ResendApiKey: ${RESEND_API_KEY:-}
+      Email__From: ${EMAIL_FROM:-Wizer <no-reply@wizer.omard.space>}
       Garage__S3Endpoint: http://garage:3900
       Garage__AdminEndpoint: http://garage:3903
       ClamAv__Host: clamav

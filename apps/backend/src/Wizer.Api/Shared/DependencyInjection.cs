@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Wizer.Api.Shared.Auth;
 using Wizer.Api.Shared.Errors;
 using Wizer.Api.Shared.Ids;
+using Wizer.Api.Shared.RateLimiting;
 using Wizer.Api.Shared.Time;
 using Wizer.Api.Shared.Validation;
 
@@ -20,6 +21,7 @@ public static class DependencyInjection
         services.AddSingleton<IIdGenerator, UuidV7IdGenerator>();
         services.AddWizerProblemDetails();
         services.AddValidatorsFromAssemblyContaining<ValidationFilter>(ServiceLifetime.Scoped);
+        services.AddWizerRateLimiting();
         return services;
     }
 

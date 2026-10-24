@@ -10,6 +10,9 @@ namespace Wizer.Api.Infrastructure.Email;
 /// </summary>
 public sealed class SmtpEmailSender(IOptions<EmailOptions> options) : IEmailSender
 {
+    // SmtpClient.Timeout only applies to the synchronous Send, so the async send is bounded with a token.
+    private static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(10);
+
     public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken)
     {
         var settings = options.Value;
@@ -18,12 +21,14 @@ public sealed class SmtpEmailSender(IOptions<EmailOptions> options) : IEmailSend
             throw new InvalidOperationException("Email:SmtpHost is not configured.");
         }
 
-        using var client = new SmtpClient(settings.SmtpHost, settings.SmtpPort) { Timeout = 10_000 };
+        using var client = new SmtpClient(settings.SmtpHost, settings.SmtpPort);
         using var mail = new MailMessage(settings.From, message.To, message.Subject, message.TextBody)
         {
             BodyEncoding = Encoding.UTF8,
             SubjectEncoding = Encoding.UTF8,
         };
-        await client.SendMailAsync(mail, cancellationToken);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(SendTimeout);
+        await client.SendMailAsync(mail, timeout.Token);
     }
 }
