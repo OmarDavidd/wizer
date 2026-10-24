@@ -7,6 +7,7 @@ public static class IdentityErrorCodes
     public const string EmailNotVerified = "EMAIL_NOT_VERIFIED";
     public const string InvalidVerificationCode = "INVALID_VERIFICATION_CODE";
     public const string VerificationPasswordMismatch = "VERIFICATION_PASSWORD_MISMATCH";
+    public const string InvalidResetCode = "INVALID_RESET_CODE";
     public const string AccountInactive = "ACCOUNT_INACTIVE";
     public const string TooManyLoginAttempts = "TOO_MANY_LOGIN_ATTEMPTS";
 }

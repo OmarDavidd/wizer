@@ -13,6 +13,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IRegistrationService, RegistrationService>();
         services.AddScoped<ISessionService, SessionService>();
+        services.AddScoped<IPasswordRecoveryService, PasswordRecoveryService>();
         services.AddSingleton<LoginAttemptLimiter>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();

@@ -24,11 +24,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ForgotPasswordRequest,
   LoginRequest,
   MeResponse,
   ProblemDetails,
   RegisterRequest,
   ResendVerificationRequest,
+  ResetPasswordRequest,
   VerifyEmailRequest
 } from '../../model';
 
@@ -503,3 +505,125 @@ export function useGetApiV1AuthMe<TData = Awaited<ReturnType<typeof getApiV1Auth
 
 
 
+export const postApiV1AuthForgotPassword = (
+    forgotPasswordRequest: BodyType<ForgotPasswordRequest>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/api/v1/auth/forgot-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: forgotPasswordRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPostApiV1AuthForgotPasswordMutationKey = () => ['postApiV1AuthForgotPassword'] as const;
+
+export const getPostApiV1AuthForgotPasswordMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthForgotPassword>>, TError,PostApiV1AuthForgotPasswordMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthForgotPassword>>, TError,PostApiV1AuthForgotPasswordMutationVariables, TContext> => {
+
+const mutationKey = getPostApiV1AuthForgotPasswordMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1AuthForgotPassword>>, PostApiV1AuthForgotPasswordMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  postApiV1AuthForgotPassword(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1AuthForgotPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AuthForgotPassword>>>
+    export type PostApiV1AuthForgotPasswordMutationBody = BodyType<ForgotPasswordRequest>
+    export type PostApiV1AuthForgotPasswordMutationError = ErrorType<ProblemDetails>
+    export type PostApiV1AuthForgotPasswordMutationVariables = {data: BodyType<ForgotPasswordRequest>}
+
+    export const usePostApiV1AuthForgotPassword = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthForgotPassword>>, TError,PostApiV1AuthForgotPasswordMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1AuthForgotPassword>>,
+        TError,
+        PostApiV1AuthForgotPasswordMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPostApiV1AuthForgotPasswordMutationOptions(options), queryClient);
+    }
+    export const postApiV1AuthResetPassword = (
+    resetPasswordRequest: BodyType<ResetPasswordRequest>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/api/v1/auth/reset-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: resetPasswordRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPostApiV1AuthResetPasswordMutationKey = () => ['postApiV1AuthResetPassword'] as const;
+
+export const getPostApiV1AuthResetPasswordMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthResetPassword>>, TError,PostApiV1AuthResetPasswordMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthResetPassword>>, TError,PostApiV1AuthResetPasswordMutationVariables, TContext> => {
+
+const mutationKey = getPostApiV1AuthResetPasswordMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1AuthResetPassword>>, PostApiV1AuthResetPasswordMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  postApiV1AuthResetPassword(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1AuthResetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AuthResetPassword>>>
+    export type PostApiV1AuthResetPasswordMutationBody = BodyType<ResetPasswordRequest>
+    export type PostApiV1AuthResetPasswordMutationError = ErrorType<ProblemDetails>
+    export type PostApiV1AuthResetPasswordMutationVariables = {data: BodyType<ResetPasswordRequest>}
+
+    export const usePostApiV1AuthResetPassword = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthResetPassword>>, TError,PostApiV1AuthResetPasswordMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1AuthResetPassword>>,
+        TError,
+        PostApiV1AuthResetPasswordMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPostApiV1AuthResetPasswordMutationOptions(options), queryClient);
+    }

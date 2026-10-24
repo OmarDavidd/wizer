@@ -11,7 +11,10 @@ namespace Wizer.Api.Modules.Identity.Controllers;
 
 [ApiController]
 [Route("api/v1/auth")]
-public sealed class AuthController(IRegistrationService registration, ISessionService sessions) : ControllerBase
+public sealed class AuthController(
+    IRegistrationService registration,
+    ISessionService sessions,
+    IPasswordRecoveryService recovery) : ControllerBase
 {
     /// <summary>Always 202 without a body, whether or not the email exists.</summary>
     [HttpPost("register")]
@@ -85,5 +88,29 @@ public sealed class AuthController(IRegistrationService registration, ISessionSe
     {
         var me = await sessions.GetMeAsync(cancellationToken);
         return me is null ? Unauthorized() : me;
+    }
+
+    /// <summary>Always 202, whether or not the account exists; the code is emailed in the background.</summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.AnonymousEmail)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        await recovery.ForgotPasswordAsync(request, cancellationToken);
+        return Accepted();
+    }
+
+    /// <summary>204 and every session is revoked; it does not sign in.</summary>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        await recovery.ResetPasswordAsync(request, cancellationToken);
+        return NoContent();
     }
 }

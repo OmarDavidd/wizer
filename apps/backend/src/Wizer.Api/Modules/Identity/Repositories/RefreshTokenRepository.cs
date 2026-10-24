@@ -22,6 +22,10 @@ public sealed class RefreshTokenRepository(AppDbContext db) : IRefreshTokenRepos
         await Live().Where(token => token.Id == tokenId)
             .ExecuteUpdateAsync(set => set.SetProperty(token => token.RevokedAt, now), cancellationToken) == 1;
 
+    public Task RevokeAllForUserAsync(Guid userId, DateTimeOffset now, CancellationToken cancellationToken) =>
+        Live().Where(token => token.UserId == userId)
+            .ExecuteUpdateAsync(set => set.SetProperty(token => token.RevokedAt, now), cancellationToken);
+
     public Task RevokeFamilyAsync(Guid familyId, DateTimeOffset now, CancellationToken cancellationToken) =>
         Live().Where(token => token.FamilyId == familyId)
             .ExecuteUpdateAsync(set => set.SetProperty(token => token.RevokedAt, now), cancellationToken);

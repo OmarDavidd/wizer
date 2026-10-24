@@ -14,6 +14,9 @@ public interface IRefreshTokenRepository
     /// <summary><c>false</c> if it was already revoked.</summary>
     Task<bool> RevokeAsync(Guid tokenId, DateTimeOffset now, CancellationToken cancellationToken);
 
+    /// <summary>Signs the user out everywhere (password reset).</summary>
+    Task RevokeAllForUserAsync(Guid userId, DateTimeOffset now, CancellationToken cancellationToken);
+
     /// <summary>Revokes every live token of the family (reuse detected, or the user can no longer sign in).</summary>
     Task RevokeFamilyAsync(Guid familyId, DateTimeOffset now, CancellationToken cancellationToken);
 }

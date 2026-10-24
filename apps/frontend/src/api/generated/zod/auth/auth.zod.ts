@@ -68,3 +68,17 @@ export const GetApiV1AuthMeResponse = zod.object({
   "campusId": zod.uuid().nullable()
 })
 
+export const PostApiV1AuthForgotPasswordBody = zod.object({
+  "email": zod.string()
+})
+
+export const PostApiV1AuthForgotPasswordResponse = zod.void()
+
+export const PostApiV1AuthResetPasswordBody = zod.object({
+  "email": zod.string(),
+  "code": zod.string(),
+  "newPassword": zod.string()
+})
+
+export const PostApiV1AuthResetPasswordResponse = zod.void()
+

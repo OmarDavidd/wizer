@@ -344,6 +344,7 @@ public sealed class SessionTests(PostgresFixture postgres) : IAsyncLifetime
     [Theory]
     [InlineData("/api/v1/auth/register")]
     [InlineData("/api/v1/auth/resend-verification")]
+    [InlineData("/api/v1/auth/forgot-password")]
     public async Task AnonymousEmailEndpoints_SixthRequestFromTheSameIpIn15Minutes_Returns429(string path)
     {
         var client = _factory.CreateClient();
