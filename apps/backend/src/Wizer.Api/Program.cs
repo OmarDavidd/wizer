@@ -1,5 +1,6 @@
 using Scalar.AspNetCore;
 using Wizer.Api.Infrastructure;
+using Wizer.Api.Infrastructure.Persistence;
 using Wizer.Api.Shared;
 using Wizer.Api.Shared.Observability;
 
@@ -13,6 +14,8 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi("v1");
 
 var app = builder.Build();
+
+await app.PrepareDatabaseAsync();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseWizerRequestLogging();
@@ -28,4 +31,4 @@ if (app.Environment.IsDevelopment())
 app.MapHealthEndpoints();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

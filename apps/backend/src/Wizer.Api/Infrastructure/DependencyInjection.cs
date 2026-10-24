@@ -15,6 +15,20 @@ public static class DependencyInjection
         services.Configure<MinioOptions>(configuration.GetSection(MinioOptions.SectionName));
         services.Configure<ClamAvOptions>(configuration.GetSection(ClamAvOptions.SectionName));
 
+        services.AddSingleton<AuditInterceptor>();
+        // The connection string is read when a context is created, never at startup, so the
+        // OpenAPI build step does not need a database.
+        services.AddDbContext<AppDbContext>((provider, options) =>
+        {
+            var connectionString = provider.GetRequiredService<IConfiguration>().GetConnectionString("Wizer");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException("Connection string 'Wizer' is not configured.");
+            }
+
+            AppDbContext.Configure(options, connectionString, provider.GetRequiredService<AuditInterceptor>());
+        });
+
         services.AddHttpClient<MinioHealthCheck>(client => client.Timeout = HealthCheckTimeout);
 
         services.AddHealthChecks()
