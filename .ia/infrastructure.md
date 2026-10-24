@@ -187,17 +187,40 @@ Construye las imágenes `backend`, `frontend` y `migrator` → las publica en `g
 
 Semanal para NuGet, npm, GitHub Actions y las imágenes de `docker-compose.dev.yml` (las majors de PostgreSQL se actualizan a mano).
 
+Dependabot solo actualiza el `packages.lock.json` del proyecto que sube de versión; los proyectos de tests también fijan las dependencias de `Wizer.Api`, así que `restore --locked-mode` fallaría. `dependabot-lockfiles.yml` los regenera en el PR, los commitea y vuelve a lanzar `ci` (un push con `GITHUB_TOKEN` no dispara workflows).
+
 ## Despliegue (MVP)
 
-Manual en el server, que tiene el repositorio clonado. Las imágenes se **construyen en el server**: no hay registry todavía, y así da igual la arquitectura del server.
+Producción sale **solo de `main`**. Las imágenes se **construyen en el server**: no hay registry todavía, y así da igual la arquitectura del server.
+
+### Automático: `deploy.yml`
+
+Cuando `ci` termina en verde sobre un push a `main` (o a mano con *Run workflow*):
+
+1. El runner entra a la tailnet con `tailscale/github-action` (OIDC, tag `tag:ci`, sin secretos de Tailscale).
+2. Se conecta por SSH como `wizer@DEPLOY_HOST` con la clave `DEPLOY_SSH_KEY`. En el server esa clave está restringida (`restrict,command=...` en `authorized_keys`) a ejecutar `infra/deploy/deploy.sh`: no puede abrir una shell ni elegir qué rama desplegar.
+3. `deploy.sh` hace `git fetch` + `checkout origin/main`, `docker compose ... up -d --build`, espera `/health/live` y limpia imágenes viejas. Si el health check falla, el job falla.
+
+Configuración en GitHub, entorno `production` (solo despliega desde `main`):
+
+| Tipo | Nombre | Valor |
+|------|--------|-------|
+| Secret | `DEPLOY_SSH_KEY` | Clave privada del deploy (la pública está en el server) |
+| Variable | `DEPLOY_HOST` | IP de Tailscale del server |
+| Variable | `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan` del server |
+| Variable | `TS_OIDC_CLIENT_ID`, `TS_OIDC_AUDIENCE` | Credencial federada de Tailscale (*Trust credentials* → OpenID Connect, emisor GitHub, sujeto `repo:OmarDavidd/wizer:environment:production`) |
+
+### Server
+
+El usuario `wizer` (grupo `docker`, sin sudo) tiene el repositorio clonado en `~/wizer` y `.env.prod` ahí mismo (permisos `600`, nunca en git). Primera vez:
 
 ```bash
-cp infra/prod.env.example .env.prod      # una sola vez; completar los secretos
-git pull
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+cp infra/prod.env.example .env.prod      # completar los secretos
+infra/deploy/deploy.sh                   # también sirve para desplegar a mano
 ```
 
 - `migrator` aplica las migraciones y termina antes de que arranque el backend.
+- La contraseña de PostgreSQL llega al backend y al migrator por `PGPASSWORD` (Npgsql la lee de ahí), nunca dentro de una cadena de conexión.
 - `proxy` (Caddy, `infra/caddy/Caddyfile`) escucha en HTTP en `127.0.0.1:8088`. El TLS lo termina Cloudflare.
 - El Cloudflare Tunnel del host publica `wizer.omard.space` → `http://localhost:8088`.
 - Todavía no hay seed de producción (institución y primer administrador): depende del módulo Identity.
