@@ -58,7 +58,7 @@ Se usa **Garage** (`dxflrs/garage:v2.4.1`, AGPLv3), un almacenamiento compatible
 - La imagen no tiene shell. El CLI se usa con `docker compose -f docker-compose.dev.yml exec garage /garage status` (o `bucket list`, `key list`).
 - Lo que Wizer usa está soportado según la documentación de Garage y se **verificó a mano** el 2026-10-24 contra `v2.4.1`: URLs firmadas (SigV4) de `PUT` y `GET`, `response-content-disposition` y `response-content-type` en la descarga, y bucket privado (sin firma o con firma inválida responde 403). Todavía no hay una prueba automática: la agrega la implementación de `IFileStorage`. Garage no implementa políticas de bucket, versionado ni IAM, y Wizer no los necesita.
 - Para actualizar: cambiar el tag de la imagen en el Compose (y en `GarageHealthCheckTests`).
-- Si quedó un volumen viejo de MinIO: `docker volume rm wizer-dev_minio_data`.
+- Si ya tenías levantado el stack con MinIO: `docker compose -f docker-compose.dev.yml up -d --remove-orphans` quita el contenedor viejo y `docker volume rm wizer-dev_minio_data` borra su volumen.
 - El código usa la abstracción `IFileStorage` (`files.md`). Cambiar de proveedor S3 no toca los módulos.
 
 ### Correo
