@@ -15,6 +15,10 @@ public static class DependencyInjection
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IPasswordRecoveryService, PasswordRecoveryService>();
         services.AddScoped<IGoogleSignInService, GoogleSignInService>();
+        services.AddScoped<InvitationService>();
+        services.AddScoped<IInvitationService>(provider => provider.GetRequiredService<InvitationService>());
+        services.AddScoped<IIdentityModuleService>(provider => provider.GetRequiredService<InvitationService>());
+        services.AddScoped<IInvitationTokenRepository, InvitationTokenRepository>();
         services.AddScoped<IExternalLoginRepository, ExternalLoginRepository>();
         services.AddSingleton<LoginAttemptLimiter>();
         services.AddScoped<IUserRepository, UserRepository>();

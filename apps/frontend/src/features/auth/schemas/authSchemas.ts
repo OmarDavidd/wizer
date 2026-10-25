@@ -64,3 +64,7 @@ export const resetPasswordSchema = z
   })
 
 export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>
+
+export const activateAccountSchema = z.object({ password: newPasswordField })
+
+export type ActivateAccountValues = z.infer<typeof activateAccountSchema>

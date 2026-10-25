@@ -230,7 +230,7 @@ infra/deploy/deploy.sh                   # también sirve para desplegar a mano
 - `proxy` (Caddy, `infra/caddy/Caddyfile`) escucha en HTTP en `127.0.0.1:8088`. El TLS lo termina Cloudflare.
 - Esquema e IP reales: Caddy confía en `cloudflared` (`trusted_proxies private_ranges`), conserva su `X-Forwarded-Proto: https` y manda al backend `X-Forwarded-For` con un solo valor, la IP del visitante tomada de `Cf-Connecting-IP`. El backend los aplica con `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`, que confía en cualquier origen: es seguro solo porque el backend no se publica y únicamente Caddy le llega.
 - El Cloudflare Tunnel del host publica `wizer.omard.space` → `http://localhost:8088`.
-- Todavía no hay seed de producción (institución y primer administrador): depende del módulo Identity.
+- Seed de producción: la institución y los campus con `infra/seed/production-base.sql`; el primer administrador lo crea la API al arrancar si `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD` están definidos y todavía no hay ningún administrador (luego no hace nada).
 - Pendiente: Alloy/Loki, backups automáticos y publicar las imágenes en GHCR con `release.yml`.
 
 ## Dominio

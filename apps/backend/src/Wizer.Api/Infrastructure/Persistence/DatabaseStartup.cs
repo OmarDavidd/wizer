@@ -10,15 +10,28 @@ public static class DatabaseStartup
     /// <summary>
     /// Development only: applies pending migrations when <c>Database:ApplyMigrationsOnStartup=true</c> and
     /// loads the development data when <c>Seed:Enabled=true</c>. Production never migrates from the API;
-    /// the <c>migrator</c> service does it (<c>.ia/database.md</c>).
+    /// the <c>migrator</c> service does it (<c>.ia/database.md</c>). Then, in any environment, seeds the
+    /// first administrator when <c>Seed:AdminEmail</c>/<c>Seed:AdminPassword</c> are set.
     /// </summary>
     public static async Task PrepareDatabaseAsync(this WebApplication app)
     {
-        if (!app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment())
+        {
+            await PrepareDevelopmentDatabaseAsync(app);
+        }
+
+        if (string.IsNullOrEmpty(app.Configuration[AdminBootstrapper.EmailKey])
+            && string.IsNullOrEmpty(app.Configuration[AdminBootstrapper.PasswordKey]))
         {
             return;
         }
 
+        await using var scope = app.Services.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<AdminBootstrapper>().RunAsync(app.Configuration);
+    }
+
+    private static async Task PrepareDevelopmentDatabaseAsync(WebApplication app)
+    {
         var applyMigrations = app.Configuration.GetValue<bool>(ApplyMigrationsKey);
         var seed = app.Configuration.GetValue<bool>(DevSeeder.EnabledKey);
         if (!applyMigrations && !seed)

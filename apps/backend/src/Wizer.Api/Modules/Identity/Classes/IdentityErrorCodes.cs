@@ -8,6 +8,7 @@ public static class IdentityErrorCodes
     public const string InvalidVerificationCode = "INVALID_VERIFICATION_CODE";
     public const string VerificationPasswordMismatch = "VERIFICATION_PASSWORD_MISMATCH";
     public const string InvalidResetCode = "INVALID_RESET_CODE";
+    public const string InvalidOrExpiredToken = "INVALID_OR_EXPIRED_TOKEN";
     public const string AccountInactive = "ACCOUNT_INACTIVE";
     public const string TooManyLoginAttempts = "TOO_MANY_LOGIN_ATTEMPTS";
     public const string EmailAlreadyExists = "EMAIL_ALREADY_EXISTS";

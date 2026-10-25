@@ -1,3 +1,4 @@
+export { ActivateAccountContainer } from './containers/ActivateAccountContainer'
 export { LoginContainer } from './containers/LoginContainer'
 export { RecoverPasswordContainer } from './containers/RecoverPasswordContainer'
 export { RegisterContainer } from './containers/RegisterContainer'

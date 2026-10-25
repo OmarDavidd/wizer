@@ -96,3 +96,16 @@ export const PostApiV1AuthGoogleResponse = zod.object({
   "campusId": zod.uuid().nullable()
 })
 
+export const PostApiV1AuthSetPasswordBody = zod.object({
+  "token": zod.string(),
+  "password": zod.string()
+})
+
+export const PostApiV1AuthSetPasswordResponse = zod.object({
+  "id": zod.uuid(),
+  "fullName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "campusId": zod.uuid().nullable()
+})
+

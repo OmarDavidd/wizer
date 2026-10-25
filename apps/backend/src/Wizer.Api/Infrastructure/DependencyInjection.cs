@@ -5,6 +5,7 @@ using Wizer.Api.Infrastructure.Email;
 using Wizer.Api.Infrastructure.Persistence;
 using Wizer.Api.Infrastructure.Persistence.Seed;
 using Wizer.Api.Infrastructure.Storage.Garage;
+using Wizer.Api.Shared.Configuration;
 using Wizer.Api.Shared.Persistence;
 
 namespace Wizer.Api.Infrastructure;
@@ -19,6 +20,7 @@ public static class DependencyInjection
         services.Configure<GarageOptions>(configuration.GetSection(GarageOptions.SectionName));
         services.Configure<ClamAvOptions>(configuration.GetSection(ClamAvOptions.SectionName));
 
+        services.Configure<AppOptions>(configuration.GetSection(AppOptions.SectionName));
         services.AddWizerAuthentication(configuration);
         services.AddWizerEmail(configuration);
 
@@ -38,6 +40,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<DevSeeder>();
+        services.AddScoped<AdminBootstrapper>();
 
         services.AddHttpClient<GarageHealthCheck>(client => client.Timeout = HealthCheckTimeout);
 
