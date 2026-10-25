@@ -48,6 +48,8 @@ services:
       # First administrator, created at startup only while no administrator exists (then it does nothing).
       Seed__AdminEmail: ${SEED_ADMIN_EMAIL:-}
       Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-}
+      # Only needed when the database has no institution yet.
+      Seed__InstitutionName: ${SEED_INSTITUTION_NAME:-}
       # Without these, Google sign-in answers GOOGLE_TOKEN_INVALID and emails fail (logged), but the API runs.
       Google__ClientId: ${GOOGLE_CLIENT_ID:-}
       Email__Provider: resend

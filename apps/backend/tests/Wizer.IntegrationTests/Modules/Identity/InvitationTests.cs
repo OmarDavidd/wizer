@@ -164,6 +164,23 @@ public sealed partial class InvitationTests(PostgresFixture postgres) : IAsyncLi
     }
 
     [Fact]
+    public async Task Resend_DeactivatedGoogleStudent_Returns409AndSendsNothing()
+    {
+        var student = _schema.NewUser(PlatformRole.Student);
+        student.CampusId = _campus.Id;
+        student.IsActive = false;
+        student.EmailVerifiedAt = _factory.Clock.UtcNow;
+        await postgres.SaveAsync(student);
+
+        var response = await SendAsync(HttpMethod.Post, $"/api/v1/admin/users/{student.Id}/resend-invitation", _admin);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        await InMemoryEmailSender.SettleAsync();
+        Assert.Empty(_factory.Emails.SentTo(student.Email));
+        Assert.False((await FindUserAsync(student.Email))!.IsActive);
+    }
+
+    [Fact]
     public async Task Resend_UnknownUser_Returns404()
     {
         var response = await SendAsync(HttpMethod.Post, $"/api/v1/admin/users/{Guid.NewGuid()}/resend-invitation", _admin);

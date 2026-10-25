@@ -20,7 +20,8 @@ public static class DatabaseStartup
             await PrepareDevelopmentDatabaseAsync(app);
         }
 
-        if (string.IsNullOrEmpty(app.Configuration[AdminBootstrapper.EmailKey]))
+        if (string.IsNullOrEmpty(app.Configuration[AdminBootstrapper.EmailKey])
+            && string.IsNullOrEmpty(app.Configuration[AdminBootstrapper.PasswordKey]))
         {
             return;
         }

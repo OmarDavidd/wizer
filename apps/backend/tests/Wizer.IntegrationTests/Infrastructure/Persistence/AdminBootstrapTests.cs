@@ -124,6 +124,32 @@ public class AdminBootstrapTests(PostgresFixture fixture)
         Assert.Contains(AdminBootstrapper.EmailKey, exception.Message);
     }
 
+    [Theory]
+    [InlineData(AdminBootstrapper.EmailKey)]
+    [InlineData(AdminBootstrapper.PasswordKey)]
+    public async Task Startup_WithOnlyOneOfEmailAndPassword_FailsWithAClearMessage(string missing)
+    {
+        var connectionString = await MigratedDatabaseAsync();
+        await AddInstitutionAsync(connectionString, "NovaUniversitas");
+
+        var exception = await StartupFailureAsync(connectionString, (missing, ""));
+
+        Assert.Contains(missing, exception.Message);
+    }
+
+    [Fact]
+    public async Task Startup_AfterTheFirstAdmin_StartsEvenWithOnlyTheEmailLeft()
+    {
+        var connectionString = await MigratedDatabaseAsync();
+        await AddInstitutionAsync(connectionString, "NovaUniversitas");
+        await StartAndStopAsync(connectionString);
+
+        await StartAndStopAsync(connectionString, (AdminBootstrapper.PasswordKey, ""));
+
+        await using var db = Context(connectionString);
+        Assert.Equal(1, await db.Set<User>().CountAsync());
+    }
+
     [Fact]
     public async Task Startup_WithoutSeedSettings_DoesNotTouchTheDatabase()
     {

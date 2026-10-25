@@ -31,15 +31,23 @@ public sealed class AdminBootstrapper(
     {
         var email = configuration[EmailKey]?.Trim().ToLowerInvariant();
         var password = configuration[PasswordKey];
-        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(email) && string.IsNullOrEmpty(password))
         {
             return;
         }
 
+        // Once an administrator exists the settings are leftovers (e.g. only the password was removed).
         if (await db.Set<User>().AnyAsync(user => user.PlatformRole == PlatformRole.Admin, cancellationToken))
         {
             logger.LogInformation("First administrator seed skipped: an administrator already exists");
             return;
+        }
+
+        // Before that, half a configuration is a mistake, not a choice: never skip it silently.
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        {
+            throw new InvalidOperationException(
+                $"Set both '{EmailKey}' and '{PasswordKey}' to seed the first administrator, or neither.");
         }
 
         if (password.Length < 10 || !password.Any(char.IsLetter) || !password.Any(char.IsDigit) ||

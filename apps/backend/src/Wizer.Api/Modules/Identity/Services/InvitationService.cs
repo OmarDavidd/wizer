@@ -91,9 +91,13 @@ public sealed class InvitationService(
             throw new NotFoundException("The user was not found.");
         }
 
-        if (user.IsActive || user.PasswordHash is not null)
+        // Only a teacher or administrator invited and never activated: an inactive account without password
+        // can also be a deactivated Google student, who must never get an activation link.
+        var pendingInvitation = user is { IsActive: false, PasswordHash: null, EmailVerifiedAt: null }
+            && user.PlatformRole is PlatformRole.Teacher or PlatformRole.Admin;
+        if (!pendingInvitation)
         {
-            throw new ConflictException("The invitation was already accepted.");
+            throw new ConflictException("This account has no pending invitation.");
         }
 
         await using (await unitOfWork.BeginTransactionAsync(cancellationToken))
