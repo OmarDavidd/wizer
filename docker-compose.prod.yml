@@ -20,6 +20,9 @@ services:
   frontend:
     build:
       context: ./apps/frontend
+      args:
+        # The same OAuth client id the backend validates against (public, ends up in the bundle).
+        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     image: wizer/frontend:local
     networks: [edge]
     restart: unless-stopped
