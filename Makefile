@@ -15,7 +15,7 @@ SEED_PASSWORD ?= WizerDev2026
 
 .DEFAULT_GOAL := help
 .PHONY: help setup infra-up infra-up-av infra-down infra-reset infra-logs infra-ps \
-	api web test test-back test-front lint format api-client migration check
+	dev dev-api dev-web api web test test-back test-front lint format api-client migration check
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -43,6 +43,17 @@ infra-logs: ## Follow infrastructure logs
 
 infra-ps: ## Show infrastructure containers
 	$(COMPOSE) --profile av ps
+
+# make -j runs both as foreground children, so Ctrl+C reaches them (a shell's `cmd &` would start them
+# ignoring SIGINT). sed ignores Ctrl+C and exits when its writer does, so shutdown logs still get through.
+dev: infra-up ## Start the infrastructure, then the API and the frontend together with prefixed logs (Ctrl+C stops both)
+	@$(MAKE) --no-print-directory -j2 dev-api dev-web
+
+dev-api:
+	@$(MAKE) --no-print-directory api 2>&1 | (trap '' INT; sed -u 's/^/[api] /')
+
+dev-web:
+	@$(MAKE) --no-print-directory web 2>&1 | (trap '' INT; sed -u 's/^/[web] /')
 
 api: ## Run the API with hot reload on http://localhost:5080
 	ConnectionStrings__Wizer="Host=localhost;Port=$(POSTGRES_PORT);Database=$(POSTGRES_DB);Username=$(POSTGRES_USER);Password=$(POSTGRES_PASSWORD)" \
