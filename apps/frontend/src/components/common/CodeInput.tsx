@@ -31,6 +31,13 @@ export function CodeInput({ label, value, onChange, length = 6, error }: CodeInp
   }
 
   function handleInput(index: number, raw: string) {
+    // Some mobile keyboards (Android) delete without a Backspace key event: an emptied box is cleared here.
+    if (raw === '') {
+      const next = [...digits]
+      next[index] = ''
+      setDigits(next, index)
+      return
+    }
     const typed = raw.replace(/\D/g, '')
     if (!typed) return
     const next = [...digits]

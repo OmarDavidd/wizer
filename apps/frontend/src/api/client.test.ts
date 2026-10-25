@@ -66,6 +66,25 @@ describe('apiClient 401 handling', () => {
     expect(onExpired).toHaveBeenCalledTimes(1)
   })
 
+  it.each([503, 'network'] as const)(
+    'keeps the session when the refresh fails with %s (transient)',
+    async (failure) => {
+      const onExpired = vi.fn<() => void>()
+      setSessionExpiredHandler(onExpired)
+      server.use(
+        http.get('/api/v1/things', () => new HttpResponse(null, { status: 401 })),
+        http.post('/api/v1/auth/refresh', () =>
+          failure === 'network'
+            ? HttpResponse.error()
+            : new HttpResponse(null, { status: failure }),
+        ),
+      )
+
+      await expect(apiClient.get('/api/v1/things')).rejects.toBeDefined()
+      expect(onExpired).not.toHaveBeenCalled()
+    },
+  )
+
   it('does not refresh when the repeated request is still unauthorized', async () => {
     const refresh = vi.fn<() => Response>(() => HttpResponse.json({}))
     server.use(

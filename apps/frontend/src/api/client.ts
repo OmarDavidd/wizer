@@ -1,4 +1,5 @@
 import axios, {
+  isAxiosError,
   type AxiosError,
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
@@ -58,8 +59,11 @@ apiClient.interceptors.response.use(undefined, async (error: AxiosError) => {
       expiredAt = 0
     })
     .catch((refreshError: unknown) => {
-      expiredAt = Date.now()
-      onSessionExpired()
+      // Only a rejected refresh token ends the session; a network error or a 5xx is transient.
+      if (isAxiosError(refreshError) && refreshError.response?.status === 401) {
+        expiredAt = Date.now()
+        onSessionExpired()
+      }
       throw refreshError
     })
     .finally(() => {

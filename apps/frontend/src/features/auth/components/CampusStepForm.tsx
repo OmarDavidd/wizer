@@ -13,11 +13,12 @@ type CampusStepValues = z.infer<typeof campusStepSchema>
 
 interface CampusStepFormProps {
   campuses: CampusOption[] | undefined
+  campusesFailed: boolean
   onSubmit: (campusId: string) => Promise<void>
 }
 
 /** First Google sign-in: the account is created in the campus chosen here (BR-ACC-05). */
-export function CampusStepForm({ campuses, onSubmit }: CampusStepFormProps) {
+export function CampusStepForm({ campuses, campusesFailed, onSubmit }: CampusStepFormProps) {
   const id = useId()
   const {
     register,
@@ -27,7 +28,9 @@ export function CampusStepForm({ campuses, onSubmit }: CampusStepFormProps) {
     resolver: zodResolver(campusStepSchema),
     defaultValues: { campusId: '' },
   })
-  const error = errors.campusId?.message
+  const error =
+    errors.campusId?.message ??
+    (campusesFailed ? 'No pudimos cargar los campus. Recarga la página.' : undefined)
 
   return (
     <form

@@ -94,7 +94,11 @@ function CampusStep({
       <AuthHeader title="Un paso más">
         Elige tu campus para terminar de crear tu cuenta de alumno.
       </AuthHeader>
-      <CampusStepForm campuses={campuses.data} onSubmit={onSubmit} />
+      <CampusStepForm
+        campuses={campuses.data}
+        campusesFailed={campuses.isError}
+        onSubmit={onSubmit}
+      />
       <Button variant="ghost" onClick={onBack} className="self-center">
         Volver
       </Button>

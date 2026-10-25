@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
@@ -37,5 +37,19 @@ describe('CodeInput', () => {
     await user.keyboard('9')
 
     expect(last).toBe('129456')
+  })
+
+  it('clears a digit when the keyboard deletes without a Backspace key event (Android)', async () => {
+    let last = ''
+    render(<Harness onValue={(value) => (last = value)} />)
+    const user = userEvent.setup()
+    await user.click(screen.getByLabelText('Dígito 1 de 6'))
+    await user.keyboard('123')
+
+    fireEvent.change(screen.getByLabelText('Dígito 2 de 6'), { target: { value: '' } })
+
+    expect(screen.getByLabelText('Dígito 2 de 6')).toHaveValue('')
+    expect(screen.getByLabelText('Dígito 3 de 6')).toHaveValue('3')
+    expect(last).toBe('1 3')
   })
 })

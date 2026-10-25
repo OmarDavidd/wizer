@@ -80,6 +80,25 @@ describe('Continuar con Google', () => {
     expect(screen.queryByRole('button', { name: 'Continuar con Google' })).not.toBeInTheDocument()
   })
 
+  it('says when the campuses cannot be loaded in the campus step', async () => {
+    server.use(
+      ...signedOut,
+      http.get('/api/v1/campuses', () => new HttpResponse(null, { status: 503 })),
+    )
+    googleApi(() => problem(400, 'CAMPUS_REQUIRED'))
+    const { user } = renderRoute('/ingresar')
+
+    await user.click(await screen.findByRole('button', { name: 'Continuar con Google' }))
+
+    expect(
+      await screen.findByText(
+        'No pudimos cargar los campus. Recarga la página.',
+        {},
+        { timeout: 5000 },
+      ),
+    ).toBeInTheDocument()
+  })
+
   it('lets the campus step go back to the form', async () => {
     server.use(...signedOut, campuses)
     googleApi(() => problem(400, 'CAMPUS_REQUIRED'))
