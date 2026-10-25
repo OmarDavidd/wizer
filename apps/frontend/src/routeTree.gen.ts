@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AppInicioRouteImport } from './routes/_app/inicio'
+import { Route as AuthActivarRouteImport } from './routes/_auth/activar'
 import { Route as AuthIngresarRouteImport } from './routes/_auth/ingresar'
 import { Route as AuthRecuperarContrasenaRouteImport } from './routes/_auth/recuperar-contrasena'
 import { Route as AuthRegistroRouteImport } from './routes/_auth/registro'
@@ -35,6 +36,11 @@ const AppInicioRoute = AppInicioRouteImport.update({
   id: '/inicio',
   path: '/inicio',
   getParentRoute: () => AppRoute,
+} as any)
+const AuthActivarRoute = AuthActivarRouteImport.update({
+  id: '/activar',
+  path: '/activar',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AuthIngresarRoute = AuthIngresarRouteImport.update({
   id: '/ingresar',
@@ -60,6 +66,7 @@ const AuthVerificarCorreoRoute = AuthVerificarCorreoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/inicio': typeof AppInicioRoute
+  '/activar': typeof AuthActivarRoute
   '/ingresar': typeof AuthIngresarRoute
   '/recuperar-contrasena': typeof AuthRecuperarContrasenaRoute
   '/registro': typeof AuthRegistroRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/inicio': typeof AppInicioRoute
+  '/activar': typeof AuthActivarRoute
   '/ingresar': typeof AuthIngresarRoute
   '/recuperar-contrasena': typeof AuthRecuperarContrasenaRoute
   '/registro': typeof AuthRegistroRoute
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_auth': typeof AuthRouteWithChildren
   '/_app/inicio': typeof AppInicioRoute
+  '/_auth/activar': typeof AuthActivarRoute
   '/_auth/ingresar': typeof AuthIngresarRoute
   '/_auth/recuperar-contrasena': typeof AuthRecuperarContrasenaRoute
   '/_auth/registro': typeof AuthRegistroRoute
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/inicio'
+    | '/activar'
     | '/ingresar'
     | '/recuperar-contrasena'
     | '/registro'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/inicio'
+    | '/activar'
     | '/ingresar'
     | '/recuperar-contrasena'
     | '/registro'
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/_app/inicio'
+    | '/_auth/activar'
     | '/_auth/ingresar'
     | '/_auth/recuperar-contrasena'
     | '/_auth/registro'
@@ -148,6 +160,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/inicio'
       preLoaderRoute: typeof AppInicioRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_auth/activar': {
+      id: '/_auth/activar'
+      path: '/activar'
+      fullPath: '/activar'
+      preLoaderRoute: typeof AuthActivarRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_auth/ingresar': {
       id: '/_auth/ingresar'
@@ -191,6 +210,7 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface AuthRouteChildren {
+  AuthActivarRoute: typeof AuthActivarRoute
   AuthIngresarRoute: typeof AuthIngresarRoute
   AuthRecuperarContrasenaRoute: typeof AuthRecuperarContrasenaRoute
   AuthRegistroRoute: typeof AuthRegistroRoute
@@ -198,6 +218,7 @@ interface AuthRouteChildren {
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthActivarRoute: AuthActivarRoute,
   AuthIngresarRoute: AuthIngresarRoute,
   AuthRecuperarContrasenaRoute: AuthRecuperarContrasenaRoute,
   AuthRegistroRoute: AuthRegistroRoute,

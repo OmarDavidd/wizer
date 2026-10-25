@@ -11,6 +11,8 @@ const byCode: Record<string, string> = {
   VERIFICATION_PASSWORD_MISMATCH:
     'El código es correcto, pero la contraseña no coincide con la de esta cuenta.',
   INVALID_RESET_CODE: 'El código no es válido o ya venció. Pide uno nuevo.',
+  INVALID_OR_EXPIRED_TOKEN:
+    'El enlace no es válido, venció o ya se usó. Pide a la administración que te reenvíe la invitación.',
   EMAIL_ALREADY_EXISTS: 'Ya existe una cuenta con este correo. Inicia sesión con tu contraseña.',
   GOOGLE_TOKEN_INVALID: 'No pudimos validar tu cuenta de Google. Inténtalo de nuevo.',
   CAMPUS_REQUIRED: 'Elige tu campus para terminar de crear la cuenta.',
