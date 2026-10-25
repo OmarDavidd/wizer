@@ -40,6 +40,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<DevSeeder>();
+        services.AddScoped<AdminBootstrapper>();
 
         services.AddHttpClient<GarageHealthCheck>(client => client.Timeout = HealthCheckTimeout);
 

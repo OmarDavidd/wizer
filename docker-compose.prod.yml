@@ -45,6 +45,9 @@ services:
       Jwt__SigningKey: ${JWT_SIGNING_KEY:?}
       # Links in emails (invitations) point here.
       App__PublicUrl: ${APP_PUBLIC_URL:-https://wizer.omard.space}
+      # First administrator, created at startup only while no administrator exists (then it does nothing).
+      Seed__AdminEmail: ${SEED_ADMIN_EMAIL:-}
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-}
       # Without these, Google sign-in answers GOOGLE_TOKEN_INVALID and emails fail (logged), but the API runs.
       Google__ClientId: ${GOOGLE_CLIENT_ID:-}
       Email__Provider: resend
