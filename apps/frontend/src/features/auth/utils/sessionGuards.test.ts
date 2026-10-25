@@ -46,6 +46,22 @@ describe('requireSession', () => {
   })
 })
 
+describe('requireSession with a transient refresh failure', () => {
+  it('fails with the server error instead of redirecting as if signed out', async () => {
+    server.use(
+      http.get('/api/v1/auth/me', () => new HttpResponse(null, { status: 401 })),
+      http.post('/api/v1/auth/refresh', () => new HttpResponse(null, { status: 503 })),
+    )
+    const queryClient = createQueryClient()
+    queryClient.setDefaultOptions({ queries: { retry: false } })
+
+    const error = await thrown(requireSession(queryClient, '/inicio'))
+
+    expect(isRedirect(error)).toBe(false)
+    expect(error).toMatchObject({ response: { status: 503 } })
+  })
+})
+
 describe('redirectIfSignedIn', () => {
   it('lets signed-out visitors stay on the access screen', async () => {
     signedOut()

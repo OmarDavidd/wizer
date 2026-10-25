@@ -72,8 +72,11 @@ apiClient.interceptors.response.use(undefined, async (error: AxiosError) => {
 
   try {
     await refreshing
-  } catch {
-    throw error
+  } catch (refreshError) {
+    // A rejected refresh token: the original 401 stands (signed out). A transient failure surfaces as
+    // itself, so callers retry instead of treating the user as signed out.
+    const rejected = isAxiosError(refreshError) && refreshError.response?.status === 401
+    throw rejected ? error : refreshError
   }
 
   return apiClient(config)
