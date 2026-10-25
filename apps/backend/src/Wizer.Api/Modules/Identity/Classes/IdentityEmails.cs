@@ -28,4 +28,17 @@ public static class IdentityEmails
             """),
         _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null),
     };
+
+    public static EmailMessage Invitation(User user, string activationLink) => new(
+        user.Email,
+        "Te invitaron a Wizer",
+        $"""
+        Hola, {user.FullName}:
+
+        Te crearon una cuenta en Wizer. Para empezar, crea tu contraseña en este enlace:
+
+        {activationLink}
+
+        El enlace sirve una sola vez y vence en 72 horas.
+        """);
 }

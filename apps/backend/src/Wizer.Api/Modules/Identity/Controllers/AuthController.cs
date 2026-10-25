@@ -15,7 +15,8 @@ public sealed class AuthController(
     IRegistrationService registration,
     ISessionService sessions,
     IPasswordRecoveryService recovery,
-    IGoogleSignInService google) : ControllerBase
+    IGoogleSignInService google,
+    IInvitationService invitations) : ControllerBase
 {
     /// <summary>Always 202 without a body, whether or not the email exists.</summary>
     [HttpPost("register")]
@@ -128,4 +129,12 @@ public sealed class AuthController(
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<MeResponse>> Google(GoogleSignInRequest request, CancellationToken cancellationToken) =>
         await google.SignInAsync(request, cancellationToken);
+
+    /// <summary>The invited teacher or administrator sets a password from the activation link and signs in.</summary>
+    [HttpPost("set-password")]
+    [AllowAnonymous]
+    [ProducesResponseType<MeResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<MeResponse>> SetPassword(SetPasswordRequest request, CancellationToken cancellationToken) =>
+        await invitations.SetPasswordAsync(request, cancellationToken);
 }

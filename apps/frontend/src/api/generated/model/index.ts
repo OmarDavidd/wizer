@@ -7,10 +7,12 @@
 
 export * from './forgotPasswordRequest';
 export * from './googleSignInRequest';
+export * from './inviteUserRequest';
 export * from './loginRequest';
 export * from './meResponse';
 export * from './problemDetails';
 export * from './registerRequest';
 export * from './resendVerificationRequest';
 export * from './resetPasswordRequest';
+export * from './setPasswordRequest';
 export * from './verifyEmailRequest';

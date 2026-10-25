@@ -43,6 +43,8 @@ services:
       # (Kerberos) encryption is off: the image has no libgssapi and Npgsql would log an error on connect.
       PGPASSWORD: ${POSTGRES_PASSWORD:?}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:?}
+      # Links in emails (invitations) point here.
+      App__PublicUrl: ${APP_PUBLIC_URL:-https://wizer.omard.space}
       # Without these, Google sign-in answers GOOGLE_TOKEN_INVALID and emails fail (logged), but the API runs.
       Google__ClientId: ${GOOGLE_CLIENT_ID:-}
       Email__Provider: resend
