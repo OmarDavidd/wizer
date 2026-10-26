@@ -17,7 +17,7 @@ Reglas de Docker, entornos, CI y despliegue.
 | Entorno | Dónde | Archivo |
 |---------|-------|---------|
 | Desarrollo | Máquina de cada dev | `docker-compose.dev.yml` |
-| CI | GitHub Actions | `docker-compose.ci.yml` |
+| CI | GitHub Actions | `docker-compose.ci.yml` (pendiente, S4) |
 | Producción | Home Lab | `docker-compose.prod.yml` |
 
 No hay staging en el MVP.
@@ -160,7 +160,7 @@ Volúmenes con nombre: `pg_data`, `garage_meta`, `garage_data`, `clamav_db`.
 | Garage | `rclone sync` del bucket (S3) a un disco de backup | Diario, 03:30 | Espejo + snapshot semanal (4) |
 | Prueba de restauración | Restaurar el dump en un contenedor temporal | Mensual | — |
 
-Scripts en `infra/backup/`. Los backups no se guardan en el mismo disco que los volúmenes.
+Scripts en `infra/backup/` (pendiente: la carpeta todavía no existe). Los backups no se guardan en el mismo disco que los volúmenes.
 
 ## CI/CD (GitHub Actions)
 
@@ -175,18 +175,18 @@ Scripts en `infra/backup/`. Los backups no se guardan en el mismo disco que los 
 
 Los nombres de los jobs (`backend`, `frontend`, `api-contract`, `secrets`) son los que se marcan como *required status checks* en la ruleset.
 
-### `e2e.yml` — en cada PR a `main` y manual
+### `e2e.yml` — en cada PR a `main` y manual (pendiente, S4)
 
 Levanta `docker-compose.ci.yml` → espera los health checks → Playwright → sube el reporte y los traces si falla.
 
-### `release.yml` — al mergear a `main`
+### `release.yml` — al mergear a `main` (pendiente)
 
 Construye las imágenes `backend`, `frontend` y `migrator` → las publica en `ghcr.io/omardavidd/wizer-*` con el tag del commit y `latest`.
 
 ### Protección de ramas
 
 - `main` y `develop` protegidas: requieren `ci` en verde y 1 aprobación. Sin push directo.
-- `main` además requiere `e2e` en verde.
+- `main` además requerirá `e2e` en verde cuando exista `e2e.yml`.
 
 ### Dependabot
 

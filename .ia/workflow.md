@@ -111,6 +111,7 @@ Antes de terminar, revisar que el cambio no introduzca:
 [ ] Los logs siguen el structured logging.
 [ ] Las pruebas se crearon o actualizaron (RED observado en las reglas nuevas).
 [ ] Las pruebas se ejecutaron: resultado real reportado.
+[ ] Los gates de quality-gates.md pasaron, o el fallo se reportó con evidencia.
 [ ] Los textos de ayuda y los docs se actualizaron si cambió un comando, una opción o un mensaje.
 ```
 
@@ -124,6 +125,7 @@ El agente **pide confirmación** antes de:
 - cambiar el contrato público de la API o de los hubs;
 - cambiar la arquitectura, la autenticación, la autorización, la seguridad o el modelo de datos;
 - cambiar la estrategia de despliegue, la CI, Docker de producción o el almacenamiento;
+- desactivar un quality gate, bajar un umbral, agregar una supresión o saltear hooks;
 - cambios destructivos sobre datos o sobre el repositorio;
 - implementar una decisión no documentada con consecuencias relevantes.
 
