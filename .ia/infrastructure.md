@@ -80,6 +80,7 @@ Ejecutar `make` (o `make help`) desde la raíz para ver la lista. Los principale
 | `make infra-down` | Apaga la infraestructura (conserva los datos) |
 | `make infra-reset` | Apaga y **borra** los volúmenes (base de datos vacía) |
 | `make infra-logs` / `make infra-ps` | Logs / estado de los contenedores |
+| `make dev` | `infra-up` y después la API y el frontend juntos, en una sola terminal, con logs con prefijo `[api]` / `[web]`. Ctrl+C apaga los dos |
 | `make api` | API con `dotnet watch` en http://localhost:5080. Aplica las migraciones y carga el seed de desarrollo |
 | `make migration name=X` | Crea una migración de EF Core (`database.md` §Migraciones) |
 | `make web` | Frontend en http://localhost:5173 |
@@ -89,6 +90,12 @@ Ejecutar `make` (o `make help`) desde la raíz para ver la lista. Los principale
 | `make check` | Lo mismo que corre la CI, en local |
 
 Flujo diario:
+
+```bash
+make dev          # infraestructura + API + frontend en una terminal
+```
+
+O por separado, para tener los logs de cada uno en su propia terminal:
 
 ```bash
 make infra-up     # una vez por sesión

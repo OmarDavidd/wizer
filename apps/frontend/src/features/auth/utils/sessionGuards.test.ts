@@ -1,7 +1,10 @@
+import type { QueryClient } from '@tanstack/react-query'
 import { isRedirect } from '@tanstack/react-router'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
+import { setSessionExpiredHandler } from '@/api/client'
 import { createQueryClient } from '@/app/queryClient'
+import { handleSessionExpired } from '@/app/sessionExpired'
 import { server } from '@/test/msw/server'
 import { redirectIfSignedIn, requireSession } from './sessionGuards'
 
@@ -43,6 +46,33 @@ describe('requireSession', () => {
     expect(error).toMatchObject({
       options: { to: '/ingresar', search: { next: '/clases/42?tab=chat' } },
     })
+  })
+})
+
+describe('guards with the app session-expired handler wired', () => {
+  // As in providers.tsx: a rejected refresh clears the cache, which cancels the /auth/me in flight.
+  function wireSessionExpired(queryClient: QueryClient, pathname: string) {
+    const router = { state: { location: { pathname, href: pathname } }, navigate: async () => {} }
+    setSessionExpiredHandler(() => handleSessionExpired(queryClient, router))
+  }
+
+  it('requireSession still redirects to /ingresar on a page reload without a session', async () => {
+    signedOut()
+    const queryClient = createQueryClient()
+    wireSessionExpired(queryClient, '/inicio')
+
+    const error = await thrown(requireSession(queryClient, '/inicio'))
+
+    expect(isRedirect(error)).toBe(true)
+    expect(error).toMatchObject({ options: { to: '/ingresar', search: { next: '/inicio' } } })
+  })
+
+  it('redirectIfSignedIn still lets a signed-out visitor reload an access screen', async () => {
+    signedOut()
+    const queryClient = createQueryClient()
+    wireSessionExpired(queryClient, '/ingresar')
+
+    await expect(redirectIfSignedIn(queryClient, undefined)).resolves.toBeUndefined()
   })
 })
 

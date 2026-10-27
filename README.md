@@ -98,6 +98,12 @@ wizer/
 
 ```bash
 make setup        # primera vez: dependencias de back y front
+make dev          # todo junto: infraestructura, API y app (Ctrl+C apaga)
+```
+
+O por separado:
+
+```bash
 make infra-up     # PostgreSQL, Garage y Mailpit en Docker
 make api          # terminal 1 → API en http://localhost:5080
 make web          # terminal 2 → app en http://localhost:5173
