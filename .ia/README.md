@@ -148,6 +148,7 @@ Flujo de tiempo real:
 | Reglas de negocio | `business-rules.md` |
 | Seguridad | `security.md` |
 | Pruebas | `testing.md` |
+| Quality gates | `quality-gates.md` |
 | Logging | `observability.md` |
 | Docker, CI, despliegue | `infrastructure.md` |
 | Convenciones | `conventions.md` |

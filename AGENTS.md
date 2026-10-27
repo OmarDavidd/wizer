@@ -1,5 +1,7 @@
 # AGENTS.md — Wizer
 
+<!-- ia-kit: 2216ae3 -->
+
 Punto de entrada para cualquier agente de IA (Claude Code, Codex, OpenCode u otro) que trabaje en este repositorio.
 
 La arquitectura, las convenciones, la infraestructura, la estrategia de pruebas y el flujo de trabajo están definidos en `.ia/`. **Leer y respetar esos documentos antes de modificar el proyecto es obligatorio.**
@@ -35,7 +37,7 @@ Después, los documentos de la tarea:
 | Autenticación o sesiones | `authentication.md`, `security.md`, `permissions.md` |
 | Permisos o reglas de negocio | `permissions.md`, `business-rules.md` |
 | Base de datos | `database.md`, `backend.md`, `conventions.md` |
-| Docker, CI, despliegue | `infrastructure.md`, `observability.md` |
+| Docker, CI, despliegue | `infrastructure.md`, `observability.md`, `quality-gates.md` |
 | Logs | `observability.md`, `backend.md` |
 | UI / diseño | `design/README.md` y los archivos que indique |
 
@@ -55,6 +57,8 @@ Después, los documentos de la tarea:
 El detalle y lo que está prohibido introducir están en `.ia/README.md`.
 
 **Comandos:** `make help` en la raíz lista todo (levantar la infraestructura, la API, el frontend, las pruebas, el lint y la regeneración del cliente de la API). El detalle está en `.ia/infrastructure.md` §Comandos.
+
+**Quality gates:** `make check` antes de terminar cualquier tarea (detalle en `.ia/quality-gates.md`).
 
 ---
 
@@ -77,7 +81,8 @@ El agente DEBE pedir confirmación antes de:
 - cambiar el contrato público de la API o de los hubs de SignalR;
 - cambiar la arquitectura, la autenticación, la autorización o el modelo de datos;
 - ejecutar operaciones destructivas sobre datos o sobre el repositorio;
-- tocar la configuración de CI, Docker Compose de producción o secretos.
+- tocar la configuración de CI, Docker Compose de producción o secretos;
+- desactivar un quality gate, bajar un umbral, agregar una supresión o saltear hooks.
 
 Los commits locales en la rama de trabajo están permitidos cuando la tarea lo requiera.
 
@@ -98,7 +103,7 @@ El flujo completo está en `.ia/workflow.md`. Resumen:
 3. Para features grandes, usar el documento ODD en `odd/tasks/<feature>.md` (local, no se sube).
 4. Prueba primero (RED → GREEN) en reglas de negocio.
 5. Cambio mínimo, sin refactors no pedidos.
-6. Correr las pruebas relacionadas y reportar el resultado real.
+6. Correr las pruebas relacionadas y `make check`, y reportar el resultado real.
 7. Resumir qué cambió, qué se probó y qué queda pendiente.
 
 ---

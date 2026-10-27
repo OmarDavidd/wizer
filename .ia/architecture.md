@@ -54,13 +54,13 @@ wizer/
 │       ├── src/
 │       ├── e2e/              Playwright (S4)
 │       └── orval.config.ts
-├── infra/                    reverse proxy, Alloy, scripts de backup (S4)
+├── infra/                    caddy/ (reverse proxy), deploy/ (deploy.sh), garage/ (config S3); Alloy y backups pendientes (S4)
 ├── Makefile                  comandos de desarrollo (`make help`)
 ├── docker-compose.dev.yml    infraestructura local
-├── docker-compose.prod.yml   (S4)
-├── docker-compose.ci.yml     (S4, para E2E)
+├── docker-compose.prod.yml   producción
+├── docker-compose.ci.yml     pendiente (S4, para E2E)
 ├── .editorconfig
-└── .github/                  workflows/ci.yml, dependabot.yml
+└── .github/                  dependabot.yml; workflows/ci.yml, deploy.yml, dependabot-lockfiles.yml
 ```
 
 ## Backend
