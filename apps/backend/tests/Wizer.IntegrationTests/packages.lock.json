@@ -624,8 +624,8 @@
       },
       "Scalar.AspNetCore": {
         "type": "Transitive",
-        "resolved": "2.18.3",
-        "contentHash": "6KXPOkCNnoZTXBl8GVNxq/zpS9UdGnz1a23EWy3CEiwYbZKQ5gi2APZ5mBruXcdXIr+ZXSZYiwX81UagjKFxeg=="
+        "resolved": "2.18.7",
+        "contentHash": "JrNu0Sm4TVeJ//ptvAS3yRbT0oobfR8qp0ecf3HIS9zX4V7uSABr+VYEyWT7uyXjhN2ZTrZ/cpwKv7zHjlK8Gg=="
       },
       "Serilog": {
         "type": "Transitive",
@@ -798,7 +798,7 @@
           "Microsoft.AspNetCore.OpenApi": "[10.0.14, )",
           "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore": "[10.0.14, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
-          "Scalar.AspNetCore": "[2.18.3, )",
+          "Scalar.AspNetCore": "[2.18.7, )",
           "Serilog.AspNetCore": "[10.0.0, )"
         }
       }
