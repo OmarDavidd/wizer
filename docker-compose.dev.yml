@@ -24,7 +24,7 @@ services:
   # private bucket from the GARAGE_DEFAULT_* variables on every start, so there is no init step.
   # The image has no shell: run the CLI with `docker compose -f docker-compose.dev.yml exec garage /garage status`.
   garage:
-    image: dxflrs/garage:v2.4.1
+    image: dxflrs/garage:v2.5.0
     command: ["/garage", "server", "--single-node", "--default-bucket"]
     environment:
       GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:-0000000000000000000000000000000000000000000000000000000000000001}
